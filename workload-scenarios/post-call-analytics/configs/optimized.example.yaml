@@ -1,0 +1,21 @@
+# Optimized architecture overlay (documentation/reference).
+architecture: optimized
+deployment_profile:
+  deployment_count: 4
+  tokens_per_minute_limit: 800000
+  requests_per_minute_limit: 2400
+  shared_quota: false
+  retry_with_backoff: true
+  ptu_units: 0
+model_mapping:
+  sentiment_model: small
+  escalation_model: small
+  summary_model: medium
+  evidence_model: medium
+  extraction_model: small
+optimizations:
+  - deterministic-first member-id extraction
+  - transcript preprocessing + context minimization
+  - prompt + result caching
+  - task-based multi-deployment routing
+  - chunking for long-tail transcripts

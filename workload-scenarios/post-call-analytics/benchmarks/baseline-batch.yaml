@@ -1,0 +1,14 @@
+# Baseline: customer current-state architecture.
+# Single Nano-class deployment, shared TPM, full-transcript prompting, no caching.
+# Reproduces the TPM bottleneck and 429 throttling under batch load.
+name: baseline-batch
+description: Customer-like baseline — single deployment, full transcripts, no caching.
+scenario: post-call-analytics
+execution_mode: local
+strategy: baseline_full_transcript
+routing: single_deployment
+caching: []
+use_optimized_mapping: false
+transcript_count: 40
+pricing_file: configs/pricing.example.yaml
+seed: 1234

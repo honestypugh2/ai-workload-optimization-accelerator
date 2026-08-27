@@ -1,0 +1,17 @@
+# Foundry customer-like configuration (documentation/reference).
+# Real connection values come from environment variables at runtime — never
+# store secrets here. See .env.example.
+foundry:
+  # Set via FOUNDRY_PROJECT_ENDPOINT
+  project_endpoint: ${FOUNDRY_PROJECT_ENDPOINT}
+  # Nano-class baseline deployment alias; set actual deployment via FOUNDRY_MODEL_NAME
+  model_name: ${FOUNDRY_MODEL_NAME}
+  credential: DefaultAzureCredential
+model_catalog:
+  baseline:
+    name: nano
+    role: customer-current-state
+    constrained_resource: true
+notes:
+  - Foundry is optional; local benchmark/evaluation run without these values.
+  - Use managed identity or DefaultAzureCredential; do not embed secrets.

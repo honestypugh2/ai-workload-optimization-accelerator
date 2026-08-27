@@ -1,0 +1,6 @@
+# Local execution defaults for the post-call analytics scenario.
+# Local mode uses synthetic data and the mock model provider — no Azure calls.
+execution_mode: local          # local | dry-run | azure
+transcript_count: 25
+seed: 1234
+pricing_file: configs/pricing.example.yaml

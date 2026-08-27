@@ -1,0 +1,44 @@
+name: evaluation-smoke
+
+# Runs the member-id extraction evaluation gate on synthetic labeled data.
+# Demonstrates the ~30% baseline vs ~90% optimized capture without Azure access.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Sync
+        run: uv sync --extra dev
+
+      - name: Member-id evaluation (90% recall gate)
+        run: >
+          uv run aiwoa evaluate run
+          --scenario post-call-analytics
+          --config workload-scenarios/post-call-analytics/evaluations/member-id.yaml
+
+      - name: Regression evaluation (naive baseline)
+        run: >
+          uv run aiwoa evaluate run
+          --scenario post-call-analytics
+          --config workload-scenarios/post-call-analytics/evaluations/regression.yaml
+
+      - name: Upload evaluation reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-reports
+          path: workload-scenarios/post-call-analytics/reports/*.eval.json
+          if-no-files-found: ignore

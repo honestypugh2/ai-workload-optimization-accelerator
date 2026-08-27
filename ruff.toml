@@ -1,0 +1,43 @@
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific
+]
+ignore = [
+    "N818", # exception naming; we use domain-specific names
+]
+
+[lint.per-file-ignores]
+"tests/**" = ["N802", "N803"]
+# typer uses function-call defaults (typer.Option/Argument) as its API idiom.
+"src/cli/commands/**" = ["B008"]
+
+[lint.isort]
+known-first-party = [
+    "benchmarking",
+    "evaluation",
+    "optimization",
+    "workloads",
+    "foundry",
+    "agents",
+    "observability",
+    "storage",
+    "registry",
+    "shared",
+    "cli",
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"

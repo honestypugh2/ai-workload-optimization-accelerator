@@ -1,0 +1,37 @@
+# Option C — Near real-time, enterprise-scale architecture, on REAL Azure (7,000/day).
+#
+# Assessment 3.3 Option C: a fully event-driven streaming pipeline with parallel
+# chunk processing across deployments for the lowest wall-clock time. PTU-backed
+# Azure OpenAI provides predictable, throttle-free latency for the base load while
+# Standard deployments absorb spikes. Modeled here as PTU-base + Standard-burst
+# routing with the optimized per-task mapping and the highest concurrency.
+#
+# Live run: provide PTU + Standard deployments behind the gateway:
+#   AIWOA_GATEWAY_KIND=apim   (or litellm)
+#   AIWOA_GATEWAY_BASE_URL=<gateway-url>/openai
+#   AIWOA_GATEWAY_API_KEY=<key>   (or AIWOA_GATEWAY_USE_AAD=1)
+#   AIWOA_GATEWAY_DEPLOYMENTS='{"baseline":"<ptu-deployment>","small":"<mini>","medium":"<mid>","large":"<burst>"}'
+name: option-c-azure
+description: Option C on real Azure — PTU base + Standard burst, parallel chunks, optimized mapping, 7,000/day.
+scenario: post-call-analytics
+execution_mode: azure
+strategy: deterministic_first
+routing: ptu_burst
+caching:
+  - prompt
+  - result
+  - metadata
+# Default to NO chunking for apples-to-apples parity with the customer batch.
+# Swap to speaker_aware (or fixed/recursive/sentence/...) to fan tasks per segment.
+chunking: full
+use_optimized_mapping: true
+transcript_count: 7000
+max_concurrency: 32
+deployment_overrides:
+  deployment_count: 4
+  tokens_per_minute_limit: 1000000
+  shared_quota: false
+  retry_with_backoff: true
+  ptu_units: 50
+pricing_file: configs/pricing.example.yaml
+seed: 1234

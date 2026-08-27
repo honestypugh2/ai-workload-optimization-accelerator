@@ -1,0 +1,37 @@
+# Customer's current Foundry config, re-pinned to THIS sandbox's real quota ceiling.
+#
+# Same shape as foundry-current-config-azure.yaml (single Global Standard nano,
+# full-transcript prompting, no caching, retry with backoff, 7,000/day) but the
+# TPM ceiling is dropped from the customer's approved 24,438,000 to the default
+# nano Global Standard quota available in this sandbox subscription/region.
+#
+# Verified live (az cognitiveservices usage list -l eastus):
+#   * gpt-5.4-nano - GlobalStandard  ->  limit 5,000 units  = 5,000,000 TPM
+#   * The customer's 24,438 units is ~4.9x this default and requires a quota
+#     increase; this config models what we can actually run here TODAY.
+#
+# Estimate to beat (documented): at the customer's 24.438M TPM the SAME baseline
+# runs in ~0.92h (see foundry-current-config-azure.yaml). Run time is throttle-
+# bound, so at 5M TPM (5,000 / 24,438 = 0.205x the quota) we expect roughly
+# 0.92h / 0.205 = ~4.5h. Token volume and price are unchanged, so cost/run and
+# cost/month should match the 24.438M baseline (~$27/run, ~$812/mo).
+name: foundry-sandbox-config-azure
+description: Customer baseline re-pinned to this sandbox's real nano quota — single Global Standard, 5M TPM, 7,000/day.
+scenario: post-call-analytics
+execution_mode: azure
+strategy: baseline_full_transcript
+routing: single_deployment
+caching: []
+use_optimized_mapping: false
+chunking: full
+transcript_count: 7000
+max_concurrency: 32
+deployment_overrides:
+  deployment_count: 1
+  tokens_per_minute_limit: 5000000
+  requests_per_minute_limit: 5000
+  shared_quota: true
+  retry_with_backoff: true
+  ptu_units: 0
+pricing_file: configs/pricing.example.yaml
+seed: 1234

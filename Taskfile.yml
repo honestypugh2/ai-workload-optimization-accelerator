@@ -1,0 +1,54 @@
+# https://taskfile.dev
+version: "3"
+
+vars:
+  UV: uv
+
+tasks:
+  sync:
+    desc: Install dependencies with uv
+    cmds:
+      - "{{.UV}} sync --extra dev"
+
+  lint:
+    desc: Run ruff lint checks
+    cmds:
+      - "{{.UV}} run ruff check ."
+
+  format:
+    desc: Format code with ruff
+    cmds:
+      - "{{.UV}} run ruff format ."
+
+  typecheck:
+    desc: Run pyright type checks
+    cmds:
+      - "{{.UV}} run pyright"
+
+  test:
+    desc: Run pytest
+    cmds:
+      - "{{.UV}} run pytest"
+
+  scenarios:
+    desc: List available workload scenarios
+    cmds:
+      - "{{.UV}} run aiwoa scenario list"
+
+  benchmark:
+    desc: Run baseline post-call-analytics benchmark
+    cmds:
+      - "{{.UV}} run aiwoa benchmark run --scenario post-call-analytics --config workload-scenarios/post-call-analytics/benchmarks/baseline-batch.yaml"
+
+  evaluate:
+    desc: Run member-id evaluation
+    cmds:
+      - "{{.UV}} run aiwoa evaluate run --scenario post-call-analytics --config workload-scenarios/post-call-analytics/evaluations/member-id.yaml"
+
+  all:
+    desc: Full local quality gate
+    cmds:
+      - task: sync
+      - task: lint
+      - task: typecheck
+      - task: test

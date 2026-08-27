@@ -1,0 +1,13 @@
+# Member-ID extraction — current-state baseline (naive regex extractor).
+# Documents the ~30% capture rate the customer sees today. No release gate: this
+# run establishes the "before" number that the deterministic hybrid cascade
+# (member-id.yaml) must beat to reach the >=90% target.
+name: member-id-baseline
+description: Current-state member-id capture with the naive regex extractor (~30%).
+scenario: post-call-analytics
+extractor: naive
+evaluators:
+  - member_id
+dataset_size: 200
+seed: 4321
+thresholds: []

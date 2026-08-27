@@ -1,0 +1,15 @@
+# Chunking comparison: map-reduce chunking for long-tail transcripts.
+# Swap `chunking` to full | fixed | speaker_aware | semantic | hierarchical | map_reduce.
+name: chunking-comparison
+description: Evaluate chunking strategies for long-tail transcripts.
+scenario: post-call-analytics
+execution_mode: local
+strategy: prompt_optimization
+routing: single_deployment
+chunking: map_reduce
+caching:
+  - prompt
+use_optimized_mapping: false
+transcript_count: 30
+pricing_file: configs/pricing.example.yaml
+seed: 2024

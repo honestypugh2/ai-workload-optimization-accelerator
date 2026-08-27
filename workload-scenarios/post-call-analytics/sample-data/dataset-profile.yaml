@@ -1,0 +1,23 @@
+# Dataset profile for the post-call analytics scenario.
+# Documents the synthetic workload's statistical shape so it stays faithful to
+# a representative call center analytics workload. Consumed by shared.configuration.DatasetProfile.
+
+target_daily_volume: 7000          # ~7,000 transcripts/day
+average_token_count: 5000          # ~5,000 tokens average input
+
+size_distribution:                 # must sum to 1.0
+  small: 0.30
+  average: 0.55
+  long: 0.15                       # long-tail transcripts for chunking evaluation
+
+member_id_presence_rate: 0.85      # fraction of calls where a member id is present
+baseline_extraction_success: 0.30  # naive-regex baseline capture (~30%)
+escalation_rate: 0.18
+noisy_transcript_rate: 0.35        # ASR noise, fillers, background
+long_transcript_rate: 0.15
+
+# Member-id presentation mix among present ids (tuned so naive ~30%, optimized ~90%):
+#   clean 0.30 | dashed 0.25 | spoken 0.25 | fragmented 0.20
+
+smoke_scale_factor: 0.0035         # fraction of daily volume for local smoke tests
+                                   # 7000 * 0.0035 ~= 25 transcripts

@@ -1,0 +1,19 @@
+# Routing comparison: deterministic-first extraction + task-based multi-deployment routing.
+# Overrides the deployment profile to model 4 deployments with independent quota.
+name: routing-comparison
+description: Deterministic-first extraction with task-based multi-deployment routing.
+scenario: post-call-analytics
+execution_mode: local
+strategy: deterministic_first
+routing: task_based
+caching:
+  - prompt
+  - result
+use_optimized_mapping: true
+transcript_count: 40
+deployment_overrides:
+  deployment_count: 4
+  tokens_per_minute_limit: 800000
+  shared_quota: false
+pricing_file: configs/pricing.example.yaml
+seed: 1234

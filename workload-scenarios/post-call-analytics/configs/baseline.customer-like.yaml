@@ -1,0 +1,24 @@
+# Customer-like baseline architecture overlay (documentation/reference).
+# Mirrors the values embedded in scenario.yaml's deployment_profile so this
+# file can be diffed against optimized overlays.
+architecture: customer-current-state
+deployment_profile:
+  deployment_count: 1
+  tokens_per_minute_limit: 200000
+  requests_per_minute_limit: 600
+  shared_quota: true
+  retry_with_backoff: true
+  ptu_units: 0
+model_mapping:
+  sentiment_model: baseline
+  escalation_model: baseline
+  summary_model: baseline
+  evidence_model: baseline
+  extraction_model: baseline
+characteristics:
+  - single deployment bottleneck
+  - shared TPM quota
+  - full-transcript prompting
+  - no caching
+  - no deterministic extraction layer
+  - retry-with-backoff under 429

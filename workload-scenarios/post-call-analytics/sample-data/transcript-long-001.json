@@ -1,0 +1,25 @@
+{
+  "transcript_id": "pca-sample-long-001",
+  "member_id_gold": "MBR309558174",
+  "metadata": {
+    "category": "prior_auth",
+    "size_bucket": "long",
+    "id_presentation": "fragmented",
+    "has_id": "True",
+    "escalated": "False",
+    "noisy": "True"
+  },
+  "utterances": [
+    { "speaker": "agent", "text": "Thank you for calling member services, this call may be recorded for quality and training purposes.", "start_seconds": 0.0 },
+    { "speaker": "member", "text": "My provider said I need prior authorization for an upcoming procedure.", "start_seconds": 6.0 },
+    { "speaker": "agent", "text": "Can you read me your member identification number please?", "start_seconds": 12.0 },
+    { "speaker": "member", "text": "Let me find it, um, MBR 3095", "start_seconds": 18.0 },
+    { "speaker": "agent", "text": "Okay, and the rest of the number?", "start_seconds": 24.0 },
+    { "speaker": "member", "text": "and then 58174, sorry the signal is bad.", "start_seconds": 30.0 },
+    { "speaker": "member", "text": "[background noise] one moment please my system is loading", "start_seconds": 36.0 },
+    { "speaker": "agent", "text": "I show the authorization is pending review by our clinical team.", "start_seconds": 42.0 },
+    { "speaker": "member", "text": "Okay, and just to make sure I have everything documented correctly on my end.", "start_seconds": 48.0 },
+    { "speaker": "agent", "text": "Is there anything else I can help you with today?", "start_seconds": 54.0 },
+    { "speaker": "member", "text": "No, that's everything, thank you for your help.", "start_seconds": 60.0 }
+  ]
+}

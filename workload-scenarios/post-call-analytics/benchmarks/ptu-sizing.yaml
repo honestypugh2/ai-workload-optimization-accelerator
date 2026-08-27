@@ -1,0 +1,19 @@
+# PTU sizing simulation: PTU base deployment with Standard burst overflow.
+name: ptu-sizing
+description: PTU base + Standard burst routing to model reserved-throughput economics.
+scenario: post-call-analytics
+execution_mode: local
+strategy: deterministic_first
+routing: ptu_burst
+caching:
+  - prompt
+  - result
+use_optimized_mapping: true
+transcript_count: 40
+deployment_overrides:
+  deployment_count: 4
+  tokens_per_minute_limit: 1000000
+  shared_quota: false
+  ptu_units: 50
+pricing_file: configs/pricing.example.yaml
+seed: 1234

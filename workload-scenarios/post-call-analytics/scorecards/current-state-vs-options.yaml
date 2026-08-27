@@ -1,0 +1,27 @@
+# Customer deliverable scorecard: current state vs the assessment's future-state
+# options, all measured on real Azure at full daily volume (7,000 transcripts).
+#
+# The first run is the baseline; deltas are shown against it. Result paths are
+# resolved relative to THIS file and are produced by running the matching
+# *-azure.yaml benchmarks, e.g.:
+#   aiwoa benchmark run --scenario post-call-analytics \
+#     --config workload-scenarios/post-call-analytics/benchmarks/current-state-azure.yaml
+# (repeat for option-a/b/c-azure.yaml), then:
+#   aiwoa report scorecard \
+#     --config workload-scenarios/post-call-analytics/scorecards/current-state-vs-options.yaml
+#
+# To add the quality dimension, point each run's `evaluation:` at a member-id
+# evaluation result JSON.
+name: current-state-vs-options
+description: Current state vs Option A/B/C on real Azure (7,000/day) — ops, cost, and quality.
+runs:
+  - label: current-state
+    benchmark: ../reports/current-state-azure.result.json
+  - label: option-a
+    benchmark: ../reports/option-a-azure.result.json
+  - label: option-b
+    benchmark: ../reports/option-b-azure.result.json
+  - label: option-c
+    benchmark: ../reports/option-c-azure.result.json
+  - label: foundry-current
+    benchmark: ../reports/foundry-current-config-azure.result.json

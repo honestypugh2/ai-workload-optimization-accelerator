@@ -1,0 +1,20 @@
+# Near-real-time / event-driven simulation: small batches, quota-aware routing.
+# Models moving away from the ~2-day batch lag toward near-real-time processing.
+name: near-real-time-simulation
+description: Event-driven near-real-time processing with quota-aware routing.
+scenario: post-call-analytics
+execution_mode: local
+strategy: deterministic_first
+routing: quota_aware
+caching:
+  - prompt
+  - result
+  - metadata
+use_optimized_mapping: true
+transcript_count: 24
+deployment_overrides:
+  deployment_count: 3
+  tokens_per_minute_limit: 600000
+  shared_quota: false
+pricing_file: configs/pricing.example.yaml
+seed: 777

@@ -1,0 +1,27 @@
+# Current-state reproduction on REAL Azure — full daily volume (7,000 transcripts).
+#
+# The live twin of current-state-batch.yaml. Single nano-class Standard
+# deployment, full-transcript prompting, no caching, retry-with-backoff. This is
+# the "before" number for the customer comparison: reproduces the throttled,
+# ~12-hour batch window against a real Azure OpenAI deployment.
+#
+# Requires the 'foundry' extra (uv sync --extra foundry) and, for the direct
+# path, FOUNDRY_PROJECT_ENDPOINT (+ az login / managed identity). Leave
+# AIWOA_GATEWAY_KIND unset or 'direct' so calls hit the single deployment.
+name: current-state-azure
+description: Current state on real Azure — single deployment, full transcripts, no cache, 7,000/day.
+scenario: post-call-analytics
+execution_mode: azure
+strategy: baseline_full_transcript
+routing: single_deployment
+caching: []
+use_optimized_mapping: false
+transcript_count: 7000
+max_concurrency: 8
+deployment_overrides:
+  deployment_count: 1
+  tokens_per_minute_limit: 250000
+  shared_quota: true
+  retry_with_backoff: true
+pricing_file: configs/pricing.example.yaml
+seed: 1234

@@ -1,0 +1,38 @@
+# Option B — Medium-complexity modernization, on REAL Azure (7,000/day).
+#
+# Assessment 3.3 Option B: replace the daily batch with event-driven micro-batches
+# and route each task to the cheapest capable model via a model router, on top of
+# deterministic pre-extraction and multi-tier caching. Delivers minutes-to-low-
+# hours latency with lower cost per insight. Modeled here as task-based routing
+# with the optimized (per-task) model mapping and higher processing concurrency.
+#
+# Live run: set the gateway env, and provide a per-task deployment map so each
+# alias hits its cheapest capable deployment:
+#   AIWOA_GATEWAY_KIND=apim   (or litellm)
+#   AIWOA_GATEWAY_BASE_URL=<gateway-url>/openai
+#   AIWOA_GATEWAY_API_KEY=<key>   (or AIWOA_GATEWAY_USE_AAD=1)
+#   AIWOA_GATEWAY_DEPLOYMENTS='{"baseline":"<big>","small":"<mini>","medium":"<mid>","large":"<big>"}'
+name: option-b-azure
+description: Option B on real Azure — task-based model router, optimized mapping, caching, 7,000/day.
+scenario: post-call-analytics
+execution_mode: azure
+strategy: deterministic_first
+routing: task_based
+caching:
+  - prompt
+  - result
+  - metadata
+# Default to NO chunking for apples-to-apples parity with the customer batch.
+# Swap to speaker_aware (or fixed/recursive/sentence/...) to fan tasks per segment.
+chunking: full
+use_optimized_mapping: true
+transcript_count: 7000
+max_concurrency: 24
+deployment_overrides:
+  deployment_count: 4
+  tokens_per_minute_limit: 1000000
+  shared_quota: false
+  retry_with_backoff: true
+  ptu_units: 0
+pricing_file: configs/pricing.example.yaml
+seed: 1234

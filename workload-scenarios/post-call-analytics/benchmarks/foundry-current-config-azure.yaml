@@ -1,0 +1,40 @@
+# Customer's current Foundry configuration, reproduced on REAL Azure (7,000/day).
+#
+# Mirrors the deployment the customer is actively testing in Foundry so our
+# numbers line up with what they see in the portal:
+#   * Model class:     nano-class chat model, version 2026-03-17
+#   * Deployment type: Global Standard (pay-per-call, highest rate limits)
+#   * Rate limit:      24,438,000 tokens/min  (RPM = 24,438)
+#   * Content filter:  DefaultV2
+#   * Deployments:     1 (the high-TPM deployment under test)
+#
+# This is the customer's real "before" at their configured quota — a single
+# Global Standard deployment, full-transcript prompting, no caching, retry with
+# backoff. It isolates what their current Foundry setup achieves so it can be
+# compared against the assessment's Option A/B/C.
+#
+# Live run (requires the 'foundry' extra and az login / managed identity):
+#   FOUNDRY_PROJECT_ENDPOINT=<project-endpoint>
+#   FOUNDRY_MODEL_NAME=<their Global Standard deployment name>
+#   # leave AIWOA_GATEWAY_KIND unset/direct and FOUNDRY_USE_AGENT unset for
+#   # direct model inference (recommended). Set FOUNDRY_USE_AGENT=1 to instead
+#   # run the opt-in agent runtime against the same deployment.
+name: foundry-current-config-azure
+description: Customer's current Foundry deployment on real Azure — Global Standard, 24.438M TPM, 7,000/day.
+scenario: post-call-analytics
+execution_mode: azure
+strategy: baseline_full_transcript
+routing: single_deployment
+caching: []
+use_optimized_mapping: false
+transcript_count: 7000
+max_concurrency: 32
+deployment_overrides:
+  deployment_count: 1
+  tokens_per_minute_limit: 24438000
+  requests_per_minute_limit: 24438
+  shared_quota: true
+  retry_with_backoff: true
+  ptu_units: 0
+pricing_file: configs/pricing.example.yaml
+seed: 1234

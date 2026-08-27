@@ -1,0 +1,18 @@
+# Configurable pricing table (example rates only — NOT real Azure prices).
+# Prices are per 1,000 tokens. Replace with your negotiated rates.
+# Keys are model-catalog aliases.
+
+currency: USD
+models:
+  baseline:
+    input_per_1k: 0.00015
+    output_per_1k: 0.00060
+  small:
+    input_per_1k: 0.00015
+    output_per_1k: 0.00060
+  medium:
+    input_per_1k: 0.00060
+    output_per_1k: 0.00240
+  large:
+    input_per_1k: 0.00250
+    output_per_1k: 0.01000

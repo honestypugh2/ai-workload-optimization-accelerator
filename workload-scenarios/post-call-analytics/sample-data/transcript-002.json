@@ -1,0 +1,21 @@
+{
+  "transcript_id": "pca-sample-002",
+  "member_id_gold": "HPL771043928",
+  "metadata": {
+    "category": "claims",
+    "size_bucket": "average",
+    "id_presentation": "spoken",
+    "has_id": "True",
+    "escalated": "True",
+    "noisy": "True"
+  },
+  "utterances": [
+    { "speaker": "agent", "text": "Member services, your call is important to us. How can I assist?", "start_seconds": 0.0 },
+    { "speaker": "member", "text": "I have a question about a claim that was denied last week.", "start_seconds": 6.0 },
+    { "speaker": "agent", "text": "Can you read me your member identification number please?", "start_seconds": 12.0 },
+    { "speaker": "member", "text": "Okay, it's H P L seven seven one zero four three nine two eight.", "start_seconds": 18.0 },
+    { "speaker": "member", "text": "uh um yeah so like I was saying you know it's been a while", "start_seconds": 24.0 },
+    { "speaker": "member", "text": "This is the third time I've called and I want to speak to a supervisor now.", "start_seconds": 30.0 },
+    { "speaker": "agent", "text": "I understand your frustration, I'm escalating this to our resolution team.", "start_seconds": 36.0 }
+  ]
+}

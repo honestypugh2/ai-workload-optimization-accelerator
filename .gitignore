@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.env
+.python-version
+
+# Tooling caches
+.ruff_cache/
+.pytest_cache/
+.pyright/
+.coverage
+htmlcov/
+coverage.xml
+
+# Benchmark / evaluation outputs
+workload-scenarios/**/reports/*.json
+workload-scenarios/**/reports/*.html
+*.result.json
+
+# Node / UI
+node_modules/
+apps/ui/dist/
+apps/ui/.vite/
+
+# Infra / Bicep build artifacts
+infra/**/*.json
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Customer documents — never commit (contain customer names / confidential content)
+*.pdf
+*.PDF
+
+# Local scratch / generated outputs (may contain customer data or subscription IDs)
+/output.txt
+/whatif_output.json
+
+docs/decisions

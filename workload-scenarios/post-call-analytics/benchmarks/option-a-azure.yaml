@@ -1,0 +1,37 @@
+# Option A — Low-risk optimization of the existing batch, on REAL Azure (7,000/day).
+#
+# Assessment 3.3 Option A: keep the batch pattern, add 2–4 Standard Azure OpenAI
+# deployments behind a multi-backend gateway (APIM or a lightweight router) with
+# centralized routing, retry, failover, and quota governance; layer on token
+# reduction, prompt + result caching, and a deterministic pre-extraction stage.
+# Removes most throttling and cuts cost within weeks; stays fundamentally batch.
+#
+# Live run: set the gateway env so aliases route across the Standard deployments:
+#   AIWOA_GATEWAY_KIND=apim   (or litellm)
+#   AIWOA_GATEWAY_BASE_URL=<gateway-url>/openai
+#   AIWOA_GATEWAY_API_KEY=<key>   (or AIWOA_GATEWAY_USE_AAD=1)
+#   AIWOA_GATEWAY_DEPLOYMENTS='{"baseline":"<deployment-name>"}'
+#   800 TPM per deployment is the default for Standard; if you want to use a different
+name: option-a-azure
+description: Option A on real Azure — multi-deployment gateway, caching, deterministic-first, 7,000/day.
+scenario: post-call-analytics
+execution_mode: azure
+strategy: deterministic_first
+routing: quota_aware
+caching:
+  - prompt
+  - result
+# Default to NO chunking for apples-to-apples parity with the customer batch.
+# Swap to speaker_aware (or fixed/recursive/sentence/...) to fan tasks per segment.
+chunking: full
+use_optimized_mapping: false
+transcript_count: 7000
+max_concurrency: 16
+deployment_overrides:
+  deployment_count: 4
+  tokens_per_minute_limit: 800000
+  shared_quota: false
+  retry_with_backoff: true
+  ptu_units: 0
+pricing_file: configs/pricing.example.yaml
+seed: 1234

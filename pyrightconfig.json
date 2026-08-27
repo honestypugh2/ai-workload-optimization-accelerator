@@ -1,0 +1,10 @@
+{
+  "include": ["src", "tests"],
+  "exclude": ["**/node_modules", "**/__pycache__", ".venv", "apps/ui"],
+  "extraPaths": ["src"],
+  "pythonVersion": "3.11",
+  "typeCheckingMode": "standard",
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": false,
+  "reportUnnecessaryTypeIgnoreComment": true
+}

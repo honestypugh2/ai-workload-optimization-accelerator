@@ -1,0 +1,21 @@
+# Member-ID extraction evaluation.
+# Demonstrates movement from the ~30% naive baseline toward the 90% optimized target.
+# Set `extractor: naive` to measure the baseline (~30%); `deterministic` for optimized.
+name: member-id
+description: Member-id extraction precision/recall with release gate at 90% recall.
+scenario: post-call-analytics
+extractor: deterministic
+evaluators:
+  - member_id
+dataset_size: 200
+seed: 4321
+thresholds:
+  - metric: member_id_recall
+    op: gte
+    value: 0.90
+  - metric: member_id_precision
+    op: gte
+    value: 0.85
+  - metric: member_id_false_positive_rate
+    op: lte
+    value: 0.10

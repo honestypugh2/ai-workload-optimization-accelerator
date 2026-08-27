@@ -1,0 +1,114 @@
+# Call Center Post-Call Analytics scenario definition.
+# This file is validated by shared.configuration.ScenarioConfig.
+# All data is synthetic. No real member IDs, PHI, or customer data.
+
+name: post-call-analytics
+display_name: Call Center Post-Call Analytics
+description: >-
+  Synthetic emulation of a healthcare payer post-call analytics workload:
+  ~7,000 call transcripts/day, ~5,000 tokens average, member-id extraction,
+  sentiment, escalation detection, evidence, and summarization. Models the
+  customer current-state architecture (Foundry + Azure OpenAI Nano-class,
+  single deployment, shared TPM, batch processing) as the baseline.
+
+input_data_type: call_transcript
+
+expected_outputs:
+  - member_id
+  - sentiment
+  - escalation
+  - summary
+  - evidence
+
+benchmark_dimensions:
+  - throughput
+  - latency
+  - token_usage
+  - cost
+  - throttling
+  - cache_efficiency
+
+evaluation_metrics:
+  - member_id_recall
+  - member_id_precision
+  - member_id_false_positive_rate
+  - member_id_false_negative_rate
+  - escalation_accuracy
+  - structured_output_validity
+
+optimization_variants:
+  - baseline_full_transcript
+  - prompt_optimization
+  - context_minimization
+  - selective_extraction
+  - summarize_before_analyze
+  - deterministic_first
+
+# Model versions are intentionally NOT hardcoded. Names are deployment aliases.
+model_catalog:
+  baseline:
+    name: nano
+    role: customer-current-state
+    deployment_type: standard
+    constrained_resource: true
+    relative_latency: 1.0
+    relative_quality: 1.0
+  small:
+    name: small
+    role: classification-routing
+    deployment_type: standard
+    relative_latency: 0.8
+    relative_quality: 1.1
+  medium:
+    name: medium
+    role: summarization
+    deployment_type: standard
+    relative_latency: 1.4
+    relative_quality: 1.5
+  large:
+    name: large
+    role: advanced-reasoning
+    deployment_type: standard
+    relative_latency: 2.2
+    relative_quality: 2.0
+
+# Current-state: every task runs on the constrained baseline deployment.
+model_mapping:
+  sentiment_model: baseline
+  escalation_model: baseline
+  summary_model: baseline
+  evidence_model: baseline
+  extraction_model: baseline
+
+# Optimization: route tasks to right-sized deployments.
+optimized_model_mapping:
+  sentiment_model: small
+  escalation_model: small
+  summary_model: medium
+  evidence_model: medium
+  extraction_model: small
+
+# Customer current-state deployment constraints (single bottleneck, shared TPM).
+deployment_profile:
+  deployment_count: 1
+  tokens_per_minute_limit: 200000
+  requests_per_minute_limit: 600
+  shared_quota: true
+  retry_with_backoff: true
+  max_retries: 5
+  ptu_units: 0
+
+# Statistical profile preserving customer workload shape.
+dataset_profile:
+  target_daily_volume: 7000
+  average_token_count: 5000
+  size_distribution:
+    small: 0.30
+    average: 0.55
+    long: 0.15
+  member_id_presence_rate: 0.85
+  baseline_extraction_success: 0.30
+  escalation_rate: 0.18
+  noisy_transcript_rate: 0.35
+  long_transcript_rate: 0.15
+  smoke_scale_factor: 0.0035

@@ -1,0 +1,20 @@
+{
+  "transcript_id": "pca-sample-001",
+  "member_id_gold": "MBR482910337",
+  "metadata": {
+    "category": "eligibility",
+    "size_bucket": "small",
+    "id_presentation": "clean",
+    "has_id": "True",
+    "escalated": "False",
+    "noisy": "False"
+  },
+  "utterances": [
+    { "speaker": "agent", "text": "Thank you for calling member services, this call may be recorded for quality and training purposes. My name is Jordan, how can I help you today?", "start_seconds": 0.0 },
+    { "speaker": "member", "text": "Hi, I want to check if my plan is still active this month.", "start_seconds": 6.0 },
+    { "speaker": "agent", "text": "Can you read me your member identification number please?", "start_seconds": 12.0 },
+    { "speaker": "member", "text": "Sure, it's MBR482910337.", "start_seconds": 18.0 },
+    { "speaker": "agent", "text": "Thank you, it shows active coverage effective this year.", "start_seconds": 24.0 },
+    { "speaker": "member", "text": "Great, that's all I needed, thank you.", "start_seconds": 30.0 }
+  ]
+}

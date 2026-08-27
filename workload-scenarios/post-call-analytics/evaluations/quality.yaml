@@ -1,0 +1,21 @@
+# Quality evaluation: structured output validity, escalation accuracy, member-id.
+name: quality
+description: Combined quality scorecard with structured output and escalation checks.
+scenario: post-call-analytics
+extractor: deterministic
+evaluators:
+  - member_id
+  - structured_output
+  - escalation
+dataset_size: 150
+seed: 4321
+thresholds:
+  - metric: structured_output_validity
+    op: gte
+    value: 0.99
+  - metric: escalation_accuracy
+    op: gte
+    value: 0.80
+  - metric: member_id_recall
+    op: gte
+    value: 0.90

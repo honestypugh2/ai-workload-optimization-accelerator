@@ -1,0 +1,15 @@
+# Token optimization: preprocessing, context minimization, prompt + result caching.
+name: token-optimization
+description: Preprocessing, context minimization, and caching to cut token usage.
+scenario: post-call-analytics
+execution_mode: local
+strategy: context_minimization
+routing: single_deployment
+caching:
+  - prompt
+  - result
+  - metadata
+use_optimized_mapping: false
+transcript_count: 40
+pricing_file: configs/pricing.example.yaml
+seed: 1234

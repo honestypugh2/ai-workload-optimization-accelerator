@@ -1,0 +1,15 @@
+# Regression evaluation: baseline naive extractor to capture the ~30% starting point.
+# Compare this result against member-id.yaml (optimized) with `aiwoa report compare`.
+name: regression
+description: Baseline (naive) extractor snapshot for regression comparison.
+scenario: post-call-analytics
+extractor: naive
+evaluators:
+  - member_id
+  - structured_output
+dataset_size: 200
+seed: 4321
+thresholds:
+  - metric: extraction_success_rate
+    op: gte
+    value: 0.25

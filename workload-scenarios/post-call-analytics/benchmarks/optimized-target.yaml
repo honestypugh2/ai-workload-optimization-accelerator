@@ -1,0 +1,35 @@
+# Optimized target — full daily volume (7,000 transcripts).
+#
+# Stacks the assessment's optimization levers on top of the current state:
+#   - deterministic-first hybrid extraction (regex + check-digit -> LLM fallback)
+#   - move deterministic work off the LLM (identifiers, metadata, obvious intent)
+#   - quota-aware multi-deployment routing (no single bottleneck)
+#   - prompt + result + metadata caching
+#   - speaker-aware selective chunking (send only relevant turns)
+#
+# Keeps tasks on the cost-efficient deployment tier so cost falls in lockstep with
+# tokens. Demonstrates the target end state: ~50% fewer tokens/transcript, ~50%
+# lower cost, near-zero 429s, a short batch window, and (via the member-id
+# evaluation) capture lifted from ~30% -> ~90%.
+name: optimized-target
+description: Optimized end state — hybrid extraction, multi-deployment routing, caching, 7,000/day.
+scenario: post-call-analytics
+execution_mode: local
+strategy: deterministic_first
+routing: quota_aware
+caching:
+  - prompt
+  - result
+  - metadata
+# Default to NO chunking for apples-to-apples parity with the customer batch.
+# Swap to speaker_aware (or fixed/recursive/sentence/...) to fan tasks per segment.
+chunking: full
+use_optimized_mapping: false
+transcript_count: 7000
+deployment_overrides:
+  deployment_count: 4
+  tokens_per_minute_limit: 1000000
+  shared_quota: false
+  retry_with_backoff: true
+pricing_file: configs/pricing.example.yaml
+seed: 1234
