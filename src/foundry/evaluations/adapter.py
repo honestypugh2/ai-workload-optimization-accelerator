@@ -1,6 +1,6 @@
 """Foundry evaluation adapter.
 
-Provides a thin seam over Azure AI Foundry evaluation capabilities. It is
+Provides a thin seam over Microsoft Foundry evaluation capabilities. It is
 optional: local evaluation runs entirely on the deterministic evaluators in
 ``evaluation``. When Foundry is unavailable, ``FoundryEvaluationAdapter`` reports
 ``available == False`` and callers fall back to local evaluators.
@@ -19,7 +19,7 @@ from foundry.projects import FoundryProjectSettings
 
 @dataclass(frozen=True, slots=True)
 class FoundryEvaluationAdapter:
-    """Optional adapter that delegates evaluation to Azure AI Foundry."""
+    """Optional adapter that delegates evaluation to Microsoft Foundry."""
 
     settings: FoundryProjectSettings
 

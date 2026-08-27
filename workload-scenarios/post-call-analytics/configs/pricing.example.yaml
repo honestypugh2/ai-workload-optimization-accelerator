@@ -1,18 +1,29 @@
-# Configurable pricing table (example rates only — NOT real Azure prices).
-# Prices are per 1,000 tokens. Replace with your negotiated rates.
-# Keys are model-catalog aliases.
+# Configurable pricing table — real Azure retail rates (Global Standard, USD).
+# Prices are per 1,000 tokens. Source: Azure Retail Prices API
+# (https://prices.azure.com, serviceName "Foundry Models"), captured 2026-08-27.
+# Keys are model-catalog aliases (see scenario.yaml `model_catalog`).
+#
+# Only nano-class models are deployed today, so `baseline` and `small` carry
+# confirmed real rates. `medium`/`large` stay documented placeholders until
+# those tiers are deployed (we are not using gpt-4.1 yet — do NOT treat their
+# numbers as real).
 
 currency: USD
 models:
+  # gpt-5.4-nano (Global Standard) — the reference current-state model; this is
+  # what the live runs use to match the reference deployment.
   baseline:
-    input_per_1k: 0.00015
-    output_per_1k: 0.00060
+    input_per_1k: 0.00020
+    output_per_1k: 0.00125
+  # gpt-4.1-nano (Global Standard) — cheapest capable model for light tasks.
   small:
-    input_per_1k: 0.00015
-    output_per_1k: 0.00060
+    input_per_1k: 0.00010
+    output_per_1k: 0.00040
+  # Placeholder — mid-tier model not deployed yet (not real rates).
   medium:
     input_per_1k: 0.00060
     output_per_1k: 0.00240
+  # Placeholder — top-tier model not deployed yet (not real rates).
   large:
     input_per_1k: 0.00250
     output_per_1k: 0.01000

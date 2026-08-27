@@ -18,7 +18,7 @@ polyglot serving, event-driven batch processing).
 | User-assigned managed identity | `modules/identity.bicep` | Secretless access (Entra ID / RBAC) | always |
 | Key Vault | `modules/keyvault.bicep` | Config secrets, RBAC auth, purge protection | always |
 | Storage (ADLS Gen2) | `modules/storage.bicep` | Transcript landing + result exports | always |
-| AI Foundry account + `gpt-nano` deployment | `modules/foundry.bicep` | Model serving core (current-state) | always |
+| Microsoft Foundry account + `gpt-nano` deployment | `modules/foundry.bicep` | Model serving core (current-state) | always |
 | Cosmos DB (serverless) | `modules/cosmos.bicep` | Insight serving store | `deployCosmos` |
 | Azure Cache for Redis | `modules/redis.bicep` | Prompt/result/metadata cache | `deployRedis` |
 | API Management (AI gateway) | `modules/apim.bicep` | Multi-backend routing, token limits, caching policies | `deployApim` |

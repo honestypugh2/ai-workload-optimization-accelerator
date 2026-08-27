@@ -1,4 +1,4 @@
-"""Azure AI Foundry / Azure OpenAI provider adapter.
+"""Microsoft Foundry / Azure OpenAI provider adapter.
 
 This module is imported lazily and only when running in ``AZURE`` execution mode.
 It depends on the optional ``foundry`` extra (``azure-ai-projects``,
@@ -22,7 +22,7 @@ from shared.types import ModelRequest, ModelResponse, TokenUsage
 
 
 class FoundryModelProvider:
-    """Adapter over an Azure AI Foundry project model deployment.
+    """Adapter over a Microsoft Foundry project model deployment.
 
     Uses ``DefaultAzureCredential`` (via the project client) so no secrets are
     handled in code. Credentials are resolved from the environment / managed

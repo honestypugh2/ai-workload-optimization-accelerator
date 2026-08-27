@@ -1,4 +1,4 @@
-"""Azure AI Foundry integration.
+"""Microsoft Foundry integration.
 
 Foundry is an OPTIONAL dependency. The local benchmark and evaluation paths run
 entirely against ``MockModelProvider`` and never import the Azure SDK. Azure code

@@ -21,7 +21,7 @@ class ExecutionMode(StrEnum):
     """Plan the run and estimate metrics without invoking any provider."""
 
     AZURE = "azure"
-    """Invoke real Azure AI Foundry / Azure OpenAI deployments."""
+    """Invoke real Microsoft Foundry / Azure OpenAI deployments."""
 
 
 class ConfidenceTier(StrEnum):

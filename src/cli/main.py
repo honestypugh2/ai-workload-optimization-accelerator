@@ -7,12 +7,17 @@ their package import side effects, then mounts the Typer sub-applications.
 from __future__ import annotations
 
 import typer
+from dotenv import load_dotenv
 
 # Registration side effects: importing these populates the registries.
 import evaluation  # noqa: F401
 import optimization  # noqa: F401
 import workloads  # noqa: F401
 from cli.commands import benchmark, evaluate, report, scenario
+
+# Load FOUNDRY_*/AZURE_* variables from a local .env (if present) before any
+# command reads them. Existing environment variables take precedence.
+load_dotenv()
 
 app = typer.Typer(
     name="aiwoa",

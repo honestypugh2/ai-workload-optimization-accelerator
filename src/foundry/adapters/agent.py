@@ -1,4 +1,4 @@
-"""Azure AI Foundry Agent provider adapter (opt-in).
+"""Microsoft Foundry Agent provider adapter (opt-in).
 
 Direct model inference (``azure_openai.py``) is the default and recommended
 path for the throughput/cost story. This module provides an *opt-in* agent

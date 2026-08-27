@@ -1,4 +1,4 @@
-// Azure AI Foundry (AI Services) account + Foundry project + a model deployment.
+// Microsoft Foundry (AI Services) account + Foundry project + a model deployment.
 // This is the model-serving core: the "gpt-nano" Standard deployment is the
 // reference current-state starting point. Additional deployments can be added
 // later to exercise multi-backend routing and PTU/burst optimization.
@@ -6,7 +6,7 @@
 @description('Azure region for the Foundry account.')
 param location string
 
-@description('Name of the AI Foundry (AI Services) account.')
+@description('Name of the Microsoft Foundry (AI Services) account.')
 param foundryAccountName string
 
 @description('Custom subdomain for the account (defaults to the account name).')

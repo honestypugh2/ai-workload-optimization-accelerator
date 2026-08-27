@@ -74,7 +74,7 @@ uv run aiwoa report scorecard \
 ## Deploy to your Azure subscription
 
 [`infra/`](infra/) contains parameterized Bicep to stand up the scenario in your
-own subscription: Azure AI Foundry with a `gpt-nano` Standard deployment, storage,
+own subscription: Microsoft Foundry with a `gpt-nano` Standard deployment, storage,
 managed identity + RBAC, monitoring, and optional Cosmos DB, Redis, an API
 Management AI gateway, and Container Apps jobs. Slow/expensive components are
 toggle-gated so you can start minimal and add optimization levers as you benchmark

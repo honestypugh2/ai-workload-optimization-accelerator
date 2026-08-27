@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True)
 class FoundryProjectSettings:
-    """Connection settings for an Azure AI Foundry project.
+    """Connection settings for a Microsoft Foundry project.
 
     Values come exclusively from environment variables. No secrets are ever
     stored in code or defaulted to real values.
