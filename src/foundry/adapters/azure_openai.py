@@ -58,7 +58,12 @@ class FoundryModelProvider:
     def _build_client(settings: FoundryProjectSettings) -> object:
         try:
             from azure.ai.projects import AIProjectClient
-            from azure.identity import DefaultAzureCredential
+            from azure.identity import (
+                AzureCliCredential,
+                ChainedTokenCredential,
+                DefaultAzureCredential,
+                ManagedIdentityCredential,
+            )
         except ImportError as exc:  # pragma: no cover - optional dependency
             raise ProviderError(
                 "azure-ai-projects is not installed. Install the 'foundry' extra "
@@ -68,9 +73,22 @@ class FoundryModelProvider:
         if not settings.project_endpoint:
             raise ProviderError("FOUNDRY_PROJECT_ENDPOINT is not configured.")
 
+        # When a tenant is pinned (AZURE_TENANT_ID), use a deterministic chain:
+        # managed identity in the cloud, else the az CLI session scoped to that
+        # tenant. DefaultAzureCredential's broader chain can otherwise hand back
+        # a token for a different tenant under concurrency, which the resource
+        # rejects with HTTP 400 "token tenant does not match resource tenant".
+        if settings.tenant_id:
+            credential: object = ChainedTokenCredential(
+                ManagedIdentityCredential(),
+                AzureCliCredential(tenant_id=settings.tenant_id),
+            )
+        else:
+            credential = DefaultAzureCredential()
+
         return AIProjectClient(
             endpoint=settings.project_endpoint,
-            credential=DefaultAzureCredential(),
+            credential=credential,
         )
 
     def complete(self, request: ModelRequest) -> ModelResponse:  # pragma: no cover
