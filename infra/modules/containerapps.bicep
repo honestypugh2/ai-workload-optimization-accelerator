@@ -1,5 +1,5 @@
 // Container Apps environment + a benchmark/processing Job.
-// Mirrors the customer's batch orchestration (Container App Jobs) and hosts the
+// Mirrors the reference batch orchestration (Container App Jobs) and hosts the
 // accelerator runner. A manually-triggered Job runs the benchmark/evaluation
 // workload; scale it up later for near-real-time event-driven processing.
 
@@ -12,7 +12,7 @@ param environmentName string
 @description('Name of the processing Job.')
 param jobName string
 
-@description('Log Analytics workspace customer ID for the environment.')
+@description('Log Analytics workspace GUID for the environment.')
 param logAnalyticsCustomerId string
 
 @description('Log Analytics workspace resource ID (used to read the shared key at deploy time).')

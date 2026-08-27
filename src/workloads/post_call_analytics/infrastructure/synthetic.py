@@ -103,7 +103,7 @@ _PRESENTATION_WEIGHTS: dict[IdPresentation, float] = {
 }
 
 # Approximate word counts per size bucket, chosen so the average lands near the
-# customer's ~5,000 token profile (~1.33 tokens/word).
+# reference's ~5,000 token profile (~1.33 tokens/word).
 _SIZE_WORD_TARGETS = {"small": 900, "average": 3800, "long": 9000}
 
 

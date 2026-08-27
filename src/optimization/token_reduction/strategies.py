@@ -1,6 +1,6 @@
 """Token-reduction strategies.
 
-Contains the customer baseline (full-transcript prompting) and a family of
+Contains the reference baseline (full-transcript prompting) and a family of
 token-reduction strategies: prompt optimization, context minimization,
 selective extraction, and summarize-before-analyze. Each is registered as a
 plugin so the benchmark harness can select it by name without branching logic.
@@ -30,7 +30,7 @@ def _extract(ctx: StrategyContext, transcript: Transcript) -> ExtractionResult |
 
 @strategy_registry.register("baseline_full_transcript")
 class BaselineFullTranscriptStrategy(OptimizationStrategy):
-    """Customer current-state: full transcript sent to every task, no caching."""
+    """Reference current-state: full transcript sent to every task, no caching."""
 
     name: ClassVar[str] = "baseline_full_transcript"
 

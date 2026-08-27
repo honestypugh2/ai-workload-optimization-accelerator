@@ -62,9 +62,9 @@ local variants are the modeled twins used for fast, offline projections.
 | `option-a-azure` | full transcript · quota-aware | 4 · 800K | Spread load across deployments (cheapest lever) |
 | `option-b-azure` | deterministic-first · task-based + cache + chunking | 4 · 1M | **Recommended**: cheapest capable model per task |
 | `option-c-azure` | full transcript · PTU burst | PTU 50 | Reserved throughput for predictable latency |
-| `foundry-current-config-azure` | full transcript · single deployment | 1 · 24.438M | The customer's *actual* Foundry deployment today |
+| `foundry-current-config-azure` | full transcript · single deployment | 1 · 24.438M | The reference's *actual* Foundry deployment today |
 
-`foundry-current-config-azure` matches what the customer sees in the portal
+`foundry-current-config-azure` matches what the reference sees in the portal
 (Global Standard, 24,438,000 TPM / RPM 24,438, DefaultV2 filter), so its numbers
 line up with their live environment.
 
@@ -84,7 +84,7 @@ uv run aiwoa benchmark run --scenario post-call-analytics \
 
 1. **Config load** — the YAML is validated at the boundary into a typed config.
 2. **Dataset synth** — a seeded synthetic dataset (`seed: 1234`) of
-   `transcript_count` transcripts is generated (faithful to the customer's size
+   `transcript_count` transcripts is generated (faithful to the reference's size
    distribution). Deterministic → repeatable numbers.
 3. **Provider build** — `--mode local` builds the offline mock provider
    (`execution_backend = local`). No network.
@@ -155,7 +155,7 @@ that overhead against `direct` on an identical workload.
   `retry_count`, `cache_hit_rate`, and `batch_completion_seconds` (modeled
   wall-clock to clear the daily batch). See [reports/README.md](reports/README.md)
   for an annotated example result and the CLI summary table.
-- **Scorecard JSON** — `reports/scorecard.json` (Step 5): the customer
+- **Scorecard JSON** — `reports/scorecard.json` (Step 5): the assessment
   deliverable, all options side by side with deltas vs the baseline.
 - **UI** — the thin React app under `apps/ui/` loads these JSON files for a
   visual comparison.
@@ -204,7 +204,7 @@ Modeled full-daily-batch (7,000 transcripts) numbers from the shipped reports:
 
 - **The bottleneck is quota, not the model.** The current single 250K-TPM
   deployment throttles (2 % of calls hit 429) and stretches the daily batch to
-  **~12 hours** — the root cause of the customer's ~2-day insight lag.
+  **~12 hours** — the root cause of the reference's ~2-day insight lag.
 - **The cheapest lever is spreading load.** Option A (quota-aware across 4
   deployments) alone cuts the batch to **~2.3 h** *and lowers* monthly cost to
   **$412** — faster and cheaper, no model changes.
@@ -215,7 +215,7 @@ Modeled full-daily-batch (7,000 transcripts) numbers from the shipped reports:
   gives steady latency but the highest cost; justify it only when latency SLAs
   demand guaranteed capacity.
 - **Ground it in their reality.** `foundry-current-config` reproduces the
-  customer's actual 24.438M-TPM Global Standard deployment, so the comparison
+  reference's actual 24.438M-TPM Global Standard deployment, so the comparison
   starts from the environment they already see in the portal.
 
 Pair this with the **quality** story (member-id extraction ~30 % → ≥90 % target

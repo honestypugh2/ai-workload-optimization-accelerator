@@ -69,7 +69,7 @@ def test_evaluate_regression_gate_uses_naive_baseline() -> None:
     assert result.exit_code == 0
 
 
-def test_no_customer_names_in_scenario_output() -> None:
+def test_no_org_names_in_scenario_output() -> None:
     result = runner.invoke(app, ["scenario", "list"])
     lowered = result.stdout.lower()
     assert "geha" not in lowered

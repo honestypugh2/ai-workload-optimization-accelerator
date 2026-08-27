@@ -1,6 +1,6 @@
 """Snowflake transcript source placeholder.
 
-Models the customer's Snowflake transcript source. Local runs use the synthetic
+Models the reference Snowflake transcript source. Local runs use the synthetic
 generator instead. Implement ``fetch_transcripts`` against the Snowflake
 connector for real environments.
 """

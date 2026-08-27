@@ -1,7 +1,7 @@
-# Customer-like baseline architecture overlay (documentation/reference).
+# Reference baseline architecture overlay (documentation/reference).
 # Mirrors the values embedded in scenario.yaml's deployment_profile so this
 # file can be diffed against optimized overlays.
-architecture: customer-current-state
+architecture: reference-current-state
 deployment_profile:
   deployment_count: 1
   tokens_per_minute_limit: 200000

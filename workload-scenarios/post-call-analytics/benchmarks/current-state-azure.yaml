@@ -2,7 +2,7 @@
 #
 # The live twin of current-state-batch.yaml. Single nano-class Standard
 # deployment, full-transcript prompting, no caching, retry-with-backoff. This is
-# the "before" number for the customer comparison: reproduces the throttled,
+# the "before" number for the comparison: reproduces the throttled,
 # ~12-hour batch window against a real Azure OpenAI deployment.
 #
 # Requires the 'foundry' extra (uv sync --extra foundry) and, for the direct

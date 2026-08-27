@@ -21,7 +21,7 @@ caching:
   - prompt
   - result
   - metadata
-# Default to NO chunking for apples-to-apples parity with the customer batch.
+# Default to NO chunking for apples-to-apples parity with the reference batch.
 # Swap to speaker_aware (or fixed/recursive/sentence/...) to fan tasks per segment.
 chunking: full
 use_optimized_mapping: true

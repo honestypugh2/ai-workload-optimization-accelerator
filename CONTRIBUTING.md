@@ -39,7 +39,7 @@ Or use the scripts:
 
 ## Data policy
 
-- Only synthetic data. No real customer names, IDs, endpoints, or keys.
+- Only synthetic data. No real organization names, IDs, endpoints, or keys.
 - Member-ID prefixes in examples are the generic `MBR` / `HPL` / `SVC`.
 
 ## Adding a scenario

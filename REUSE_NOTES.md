@@ -2,7 +2,7 @@
 
 This accelerator is intentionally **modular and plugin-based** so you can adopt
 individual pieces without taking the whole thing. Nothing here is tied to a
-specific customer, dataset, or Azure subscription.
+specific organization, dataset, or Azure subscription.
 
 ## What is reusable, and how
 
@@ -31,7 +31,7 @@ specific customer, dataset, or Azure subscription.
 - **No monolith.** Each module is independently importable and unit-tested.
 - **Runs offline.** Azure SDK imports are guarded; the default provider is a
   deterministic mock.
-- **No customer identity.** Prefixes (`MBR`/`HPL`/`SVC`) and all data are
+- **No organization identity.** Prefixes (`MBR`/`HPL`/`SVC`) and all data are
   synthetic and generic.
 - **Registration by import.** New capabilities are discovered via registries, so
   the core never needs to know about your extensions at build time.

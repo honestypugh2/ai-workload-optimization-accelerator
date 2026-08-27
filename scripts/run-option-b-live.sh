@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Live Option B validation on REAL Azure + customer scorecard.
+# Live Option B validation on REAL Azure + assessment scorecard.
 #
 # Option B (assessment §3.3): event-driven micro-batches with task-based routing
 # to the cheapest capable model. This script:

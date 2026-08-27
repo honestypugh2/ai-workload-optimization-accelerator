@@ -1,4 +1,4 @@
-# Baseline prompt (customer current-state)
+# Baseline prompt (reference current-state)
 
 You are analyzing a healthcare payer member-services call transcript.
 

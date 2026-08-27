@@ -1,10 +1,10 @@
 // AI Workload Optimization Accelerator — Post-Call Analytics infrastructure.
 //
-// Deploys the Azure footprint needed to reproduce the customer current-state
+// Deploys the Azure footprint needed to reproduce the reference current-state
 // (single "gpt-nano" Standard deployment, batch processing) and to incrementally
 // exercise the optimization levers (multi-backend gateway, caching, polyglot
-// serving, event-driven processing). All customer-specific values live in the
-// parameter file — this template contains no customer names.
+// serving, event-driven processing). All environment-specific values live in the
+// parameter file — this template contains no organization names.
 //
 // Scope: resource group. Create the group first, then:
 //   az deployment group create -g <rg> -f infra/main.bicep -p infra/main.bicepparam

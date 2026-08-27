@@ -22,7 +22,7 @@ def test_baseline_benchmark_runs_offline() -> None:
 
 def test_baseline_reproduces_throttling() -> None:
     result = run_benchmark_file(BENCHMARKS / "baseline-batch.yaml")
-    # The customer-like baseline is designed to hit its TPM ceiling.
+    # The reference baseline is designed to hit its TPM ceiling.
     assert result.metrics.http_429_rate > 0
 
 

@@ -23,7 +23,7 @@ If you discover a security issue in the accelerator code itself:
   when running in Azure.
 - **Synthetic data only.** All datasets are generated synthetically
   (`src/workloads/post_call_analytics/infrastructure/synthetic.py`). Member IDs,
-  transcripts, and outcomes are fabricated. Do not commit real customer data.
+  transcripts, and outcomes are fabricated. Do not commit real confidential data.
 - **Local-only UI.** The viewer in `apps/ui/` reads result files entirely in the
   browser and uploads nothing.
 

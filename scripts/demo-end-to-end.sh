@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# End-to-end demonstration: reproduce the customer current-state batch, apply the
+# End-to-end demonstration: reproduce the reference current-state batch, apply the
 # optimization levers, run quality evaluations, and render a single combined
 # operations + cost + quality scorecard.
 #

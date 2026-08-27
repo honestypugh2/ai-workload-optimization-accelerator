@@ -1,6 +1,6 @@
 """Member-id extraction: naive baseline, deterministic optimized, and fallbacks.
 
-* ``NaiveRegexExtractor`` models the customer baseline: a single regex over the
+* ``NaiveRegexExtractor`` models the reference baseline: a single regex over the
   raw transcript. It only recovers cleanly-formatted, contiguous ids (~30%).
 * ``DeterministicMemberIdExtractor`` normalizes spoken digits and delimiters and
   reconstructs fragmented ids, reaching the optimized ~90% recall target.

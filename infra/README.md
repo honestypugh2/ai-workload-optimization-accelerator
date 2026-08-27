@@ -1,13 +1,13 @@
 # Infrastructure (`infra/`)
 
 Deployable Azure infrastructure for running the **Post-Call Analytics** workload
-optimization scenario in **your own subscription**. It provisions the customer
+optimization scenario in **your own subscription**. It provisions the reference
 current-state footprint (a single `gpt-nano` Standard deployment behind Azure AI
 Foundry) plus the building blocks needed to incrementally exercise the
 optimization levers from the assessment (multi-backend AI gateway, caching,
 polyglot serving, event-driven batch processing).
 
-> No customer names, secrets, or PHI live in these templates. Customer-specific
+> No organization names, secrets, or PHI live in these templates. Environment-specific
 > values are supplied through [`main.bicepparam`](main.bicepparam).
 
 ## What gets deployed
@@ -71,7 +71,7 @@ az deployment group show -g rg-pcaopt-dev -n main \
 | `appInsightsConnectionString` | `APPLICATIONINSIGHTS_CONNECTION_STRING` |
 | `cosmosEndpoint` | `COSMOS_ENDPOINT` |
 
-See [`workload-scenarios/post-call-analytics/configs/foundry.customer-like.yaml`](../workload-scenarios/post-call-analytics/configs/foundry.customer-like.yaml)
+See [`workload-scenarios/post-call-analytics/configs/foundry.reference.yaml`](../workload-scenarios/post-call-analytics/configs/foundry.reference.yaml)
 for the matching Foundry-mode scenario config.
 
 ## Adding optimization levers

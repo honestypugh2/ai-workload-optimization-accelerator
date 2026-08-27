@@ -1,6 +1,6 @@
 """Cosmos DB result store placeholder.
 
-Models the customer's Cosmos DB insight storage. It is a documented seam only;
+Models the reference Cosmos DB insight storage. It is a documented seam only;
 local runs never require Cosmos DB. Implement ``save``/``load`` against
 ``azure-cosmos`` when running in a real environment.
 """

@@ -1,4 +1,4 @@
-# Customer deliverable scorecard: current state vs the assessment's future-state
+# Assessment deliverable scorecard: current state vs the future-state
 # options, all measured on real Azure at full daily volume (7,000 transcripts).
 #
 # The first run is the baseline; deltas are shown against it. Result paths are

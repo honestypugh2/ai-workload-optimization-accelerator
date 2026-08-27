@@ -1,6 +1,6 @@
 // Azure AI Foundry (AI Services) account + Foundry project + a model deployment.
 // This is the model-serving core: the "gpt-nano" Standard deployment is the
-// customer current-state starting point. Additional deployments can be added
+// reference current-state starting point. Additional deployments can be added
 // later to exercise multi-backend routing and PTU/burst optimization.
 
 @description('Azure region for the Foundry account.')

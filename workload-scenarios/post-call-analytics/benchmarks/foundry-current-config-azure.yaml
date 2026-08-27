@@ -1,6 +1,6 @@
-# Customer's current Foundry configuration, reproduced on REAL Azure (7,000/day).
+# Reference's current Foundry configuration, reproduced on REAL Azure (7,000/day).
 #
-# Mirrors the deployment the customer is actively testing in Foundry so our
+# Mirrors the deployment the reference is actively testing in Foundry so our
 # numbers line up with what they see in the portal:
 #   * Model class:     nano-class chat model, version 2026-03-17
 #   * Deployment type: Global Standard (pay-per-call, highest rate limits)
@@ -8,7 +8,7 @@
 #   * Content filter:  DefaultV2
 #   * Deployments:     1 (the high-TPM deployment under test)
 #
-# This is the customer's real "before" at their configured quota — a single
+# This is the reference's real "before" at its configured quota — a single
 # Global Standard deployment, full-transcript prompting, no caching, retry with
 # backoff. It isolates what their current Foundry setup achieves so it can be
 # compared against the assessment's Option A/B/C.
@@ -20,7 +20,7 @@
 #   # direct model inference (recommended). Set FOUNDRY_USE_AGENT=1 to instead
 #   # run the opt-in agent runtime against the same deployment.
 name: foundry-current-config-azure
-description: Customer's current Foundry deployment on real Azure — Global Standard, 24.438M TPM, 7,000/day.
+description: Reference's current Foundry deployment on real Azure — Global Standard, 24.438M TPM, 7,000/day.
 scenario: post-call-analytics
 execution_mode: azure
 strategy: baseline_full_transcript

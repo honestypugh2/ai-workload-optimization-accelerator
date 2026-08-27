@@ -4,7 +4,7 @@ Reusable accelerator for evaluating and optimizing Azure AI workloads across
 **throughput, latency, token usage, cost, quality, reliability, and architecture
 patterns**.
 
-This repository supports customer **Performance Optimization Assessments**. The
+This repository supports **Performance Optimization Assessments**. The
 first workload scenario is **Call Center Post-Call Analytics**. It is a
 modular, plugin-based platform — *not* a single distributable SDK — so new Azure
 AI workload scenarios can be added over time.
@@ -35,7 +35,7 @@ uv sync --extra dev
 
 uv run aiwoa scenario list
 
-# Customer-like baseline benchmark (reproduces HTTP 429 throttling)
+# Reference baseline benchmark (reproduces HTTP 429 throttling)
 uv run aiwoa benchmark run --scenario post-call-analytics \
   --config workload-scenarios/post-call-analytics/benchmarks/baseline-batch.yaml
 
@@ -51,7 +51,7 @@ uv run aiwoa report compare \
 
 ### End-to-end demo: current state → optimized
 
-Reproduce the customer current-state batch (single deployment, ~12-hour window to
+Reproduce the reference current-state batch (single deployment, ~12-hour window to
 process 7,000 transcripts, HTTP 429 throttling), apply the optimization levers,
 run the quality evaluations, and render one combined operations + cost + quality
 scorecard:

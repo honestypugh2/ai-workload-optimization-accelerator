@@ -60,7 +60,7 @@ class DeploymentProfile(BaseModel):
 
 
 class DatasetProfile(BaseModel):
-    """Statistical profile that keeps synthetic data faithful to the customer."""
+    """Statistical profile that keeps synthetic data faithful to the reference."""
 
     target_daily_volume: int = Field(default=7_000, gt=0)
     average_token_count: int = Field(default=5_000, gt=0)

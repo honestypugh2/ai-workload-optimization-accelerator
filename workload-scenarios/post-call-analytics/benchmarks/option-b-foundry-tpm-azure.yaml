@@ -1,7 +1,7 @@
-# Option B optimizations layered on the customer's REAL Foundry quota (7,000/day).
+# Option B optimizations layered on the reference's REAL Foundry quota (7,000/day).
 #
 # Same task-based routing + deterministic pre-extraction + multi-tier caching as
-# option-b-azure.yaml, but pinned to the customer's actual deployment ceiling
+# option-b-azure.yaml, but pinned to the reference's actual deployment ceiling
 # (single Global Standard deployment, 24,438,000 TPM / RPM 24,438) instead of the
 # modeled 4x1M topology. Compare against foundry-current-config-azure.yaml (same
 # quota, unoptimized) to quantify what optimization alone buys on the quota they
@@ -10,7 +10,7 @@
 #
 # Live run: same env as foundry-current-config-azure.yaml (direct inference).
 name: option-b-foundry-tpm-azure
-description: Option B (routing + caching) on the customer's real Foundry quota — single Global Standard, 24.438M TPM, 7,000/day.
+description: Option B (routing + caching) on the reference's real Foundry quota — single Global Standard, 24.438M TPM, 7,000/day.
 scenario: post-call-analytics
 execution_mode: azure
 strategy: deterministic_first
@@ -19,7 +19,7 @@ caching:
   - prompt
   - result
   - metadata
-# Default to NO chunking for apples-to-apples parity with the customer batch.
+# Default to NO chunking for apples-to-apples parity with the reference batch.
 # Swap to speaker_aware (or fixed/recursive/sentence/...) to fan tasks per segment.
 chunking: full
 use_optimized_mapping: true

@@ -1,6 +1,6 @@
 # Call Center Post-Call Analytics scenario definition.
 # This file is validated by shared.configuration.ScenarioConfig.
-# All data is synthetic. No real member IDs, PHI, or customer data.
+# All data is synthetic. No real member IDs, PHI, or confidential data.
 
 name: post-call-analytics
 display_name: Call Center Post-Call Analytics
@@ -8,7 +8,7 @@ description: >-
   Synthetic emulation of a healthcare payer post-call analytics workload:
   ~7,000 call transcripts/day, ~5,000 tokens average, member-id extraction,
   sentiment, escalation detection, evidence, and summarization. Models the
-  customer current-state architecture (Foundry + Azure OpenAI Nano-class,
+  reference current-state architecture (Foundry + Azure OpenAI Nano-class,
   single deployment, shared TPM, batch processing) as the baseline.
 
 input_data_type: call_transcript
@@ -48,7 +48,7 @@ optimization_variants:
 model_catalog:
   baseline:
     name: nano
-    role: customer-current-state
+    role: reference-current-state
     deployment_type: standard
     constrained_resource: true
     relative_latency: 1.0
@@ -88,7 +88,7 @@ optimized_model_mapping:
   evidence_model: medium
   extraction_model: small
 
-# Customer current-state deployment constraints (single bottleneck, shared TPM).
+# Reference current-state deployment constraints (single bottleneck, shared TPM).
 deployment_profile:
   deployment_count: 1
   tokens_per_minute_limit: 200000
@@ -98,7 +98,7 @@ deployment_profile:
   max_retries: 5
   ptu_units: 0
 
-# Statistical profile preserving customer workload shape.
+# Statistical profile preserving the reference workload shape.
 dataset_profile:
   target_daily_volume: 7000
   average_token_count: 5000

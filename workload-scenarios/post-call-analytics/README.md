@@ -30,7 +30,7 @@ data.
 # List scenarios
 uv run aiwoa scenario list
 
-# Baseline (customer-like) benchmark — reproduces 429 throttling
+# Baseline (reference) benchmark — reproduces 429 throttling
 uv run aiwoa benchmark run --scenario post-call-analytics \
   --config workload-scenarios/post-call-analytics/benchmarks/baseline-batch.yaml
 

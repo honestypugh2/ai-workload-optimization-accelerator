@@ -1,6 +1,6 @@
 # Current-state reproduction — full daily volume (7,000 transcripts).
 #
-# Models the customer's present-day batch: a SINGLE nano-class Standard
+# Models the reference's present-day batch: a SINGLE nano-class Standard
 # deployment, full-transcript prompting on every task, no caching, retry-with-
 # backoff on throttling. Reproduces the ~12-hour processing window and the 429
 # throttling that drives the multi-day end-to-end lag.
@@ -10,7 +10,7 @@
 # 7,000-transcript batch completes in ~12h). The scenario's documented Standard
 # quota (200k TPM) lives in scenario.yaml.
 name: current-state-batch
-description: Customer current-state — single deployment, full transcripts, no cache, 7,000/day.
+description: Reference current-state — single deployment, full transcripts, no cache, 7,000/day.
 scenario: post-call-analytics
 execution_mode: local
 strategy: baseline_full_transcript

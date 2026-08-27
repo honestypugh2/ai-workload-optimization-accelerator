@@ -50,7 +50,7 @@ class Router(ABC):
 
 
 class SingleDeploymentRouter(Router):
-    """Always routes to the first (only) deployment: the customer baseline."""
+    """Always routes to the first (only) deployment: the reference baseline."""
 
     name = "single_deployment"
 

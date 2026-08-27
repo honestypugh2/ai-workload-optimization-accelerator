@@ -2,7 +2,7 @@ using './main.bicep'
 
 // ---------------------------------------------------------------------------
 // Parameters for deploying into YOUR Azure subscription.
-// No secrets or customer names belong in this file. Replace placeholders and
+// No secrets or organization names belong in this file. Replace placeholders and
 // deploy with:
 //   az group create -n <rg> -l <region>
 //   az deployment group create -g <rg> -f infra/main.bicep -p infra/main.bicepparam

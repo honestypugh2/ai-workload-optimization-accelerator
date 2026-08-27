@@ -1,4 +1,4 @@
-# Foundry customer-like configuration (documentation/reference).
+# Foundry reference configuration (documentation/reference).
 # Real connection values come from environment variables at runtime — never
 # store secrets here. See .env.example.
 foundry:
@@ -10,7 +10,7 @@ foundry:
 model_catalog:
   baseline:
     name: nano
-    role: customer-current-state
+    role: reference-current-state
     constrained_resource: true
 notes:
   - Foundry is optional; local benchmark/evaluation run without these values.
