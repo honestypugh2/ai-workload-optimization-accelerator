@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from foundry.adapters._retry import RetryingProvider
-from shared.exceptions import ProviderError, ThrottlingError
+from shared.exceptions import ProviderError, ThrottlingError, TransientProviderError
 from shared.types import ModelRequest, ModelResponse, TokenUsage
 
 _REQUEST = ModelRequest(prompt="hi", task="sentiment")
@@ -86,6 +86,52 @@ def test_non_throttle_errors_propagate_immediately() -> None:
 
     with pytest.raises(ProviderError):
         provider.complete(_REQUEST)
+
+
+def test_transient_provider_errors_retry_until_success() -> None:
+    class _FlakyTransient:
+        deployment = "flaky"
+
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def complete(self, request: ModelRequest) -> ModelResponse:
+            self.calls += 1
+            if self.calls < 3:
+                raise TransientProviderError("Failed to invoke the Azure CLI")
+            return _response()
+
+    inner = _FlakyTransient()
+    delays: list[float] = []
+    provider = RetryingProvider(
+        inner, max_retries=5, sleep=delays.append, rand=lambda: 1.0, base_backoff_s=0.5
+    )
+
+    result = provider.complete(_REQUEST)
+
+    assert result.deployment == "d0"
+    assert inner.calls == 3  # 2 transient failures + 1 success
+    assert delays == [0.5, 1.0]  # exponential backoff, no Retry-After hint
+
+
+def test_transient_provider_errors_reraise_after_exhausting_retries() -> None:
+    class _AlwaysTransient:
+        deployment = "flaky"
+
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def complete(self, request: ModelRequest) -> ModelResponse:
+            self.calls += 1
+            raise TransientProviderError("Failed to invoke the Azure CLI")
+
+    inner = _AlwaysTransient()
+    provider = RetryingProvider(inner, max_retries=2, sleep=lambda _: None)
+
+    with pytest.raises(TransientProviderError):
+        provider.complete(_REQUEST)
+
+    assert inner.calls == 3  # initial + 2 retries
 
 
 def test_deployment_delegates_to_inner() -> None:

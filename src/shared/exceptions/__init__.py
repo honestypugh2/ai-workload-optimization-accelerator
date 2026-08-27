@@ -11,6 +11,7 @@ from shared.exceptions.errors import (
     ScenarioNotFoundError,
     StrategyNotFoundError,
     ThrottlingError,
+    TransientProviderError,
 )
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "ScenarioNotFoundError",
     "StrategyNotFoundError",
     "ThrottlingError",
+    "TransientProviderError",
 ]

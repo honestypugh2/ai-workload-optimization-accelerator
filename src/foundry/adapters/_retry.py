@@ -12,7 +12,7 @@ import time
 from collections.abc import Callable
 
 from shared.contracts import ModelProvider
-from shared.exceptions import ThrottlingError
+from shared.exceptions import ThrottlingError, TransientProviderError
 from shared.types import ModelRequest, ModelResponse
 
 _DEFAULT_MAX_RETRIES = 5
@@ -23,9 +23,10 @@ _DEFAULT_MAX_BACKOFF_S = 30.0
 class RetryingProvider:
     """Wraps a provider with bounded retry/backoff on HTTP 429.
 
-    Retries only on :class:`ThrottlingError`; all other failures propagate
-    immediately. Backoff is exponential with full jitter and capped, and a
-    server ``Retry-After`` (when present) takes precedence. ``sleep`` and
+    Retries on :class:`ThrottlingError` and transient (non-429) provider blips
+    such as a momentary credential/CLI token-fetch failure; all other failures
+    propagate immediately. Backoff is exponential with full jitter and capped,
+    and a server ``Retry-After`` (when present) takes precedence. ``sleep`` and
     ``rand`` are injectable so tests run deterministically without real delays.
     """
 
@@ -59,6 +60,11 @@ class RetryingProvider:
                 if attempt >= self._max_retries:
                     raise
                 self._sleep(self._backoff(attempt, exc.retry_after_seconds))
+                attempt += 1
+            except TransientProviderError:
+                if attempt >= self._max_retries:
+                    raise
+                self._sleep(self._backoff(attempt, None))
                 attempt += 1
 
     def _backoff(self, attempt: int, retry_after_seconds: float | None) -> float:

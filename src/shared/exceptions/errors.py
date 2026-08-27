@@ -31,6 +31,15 @@ class ProviderError(AcceleratorError):
     """Raised when a model provider fails to produce a response."""
 
 
+class TransientProviderError(ProviderError):
+    """Raised for transient, retryable provider failures that are not 429s.
+
+    Covers blips such as a momentary credential/CLI token-fetch failure. The
+    retry wrapper backs off and retries these without counting them as HTTP 429
+    throttling.
+    """
+
+
 class ThrottlingError(ProviderError):
     """Raised to simulate or surface HTTP 429 throttling from a provider.
 

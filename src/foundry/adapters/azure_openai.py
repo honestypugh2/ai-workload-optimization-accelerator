@@ -17,7 +17,7 @@ from typing import NoReturn
 from foundry.projects import FoundryProjectSettings
 from shared.configuration import ModelDefinition
 from shared.contracts import ModelProvider, TokenCounter
-from shared.exceptions import ProviderError, ThrottlingError
+from shared.exceptions import ProviderError, ThrottlingError, TransientProviderError
 from shared.types import ModelRequest, ModelResponse, TokenUsage
 
 
@@ -41,10 +41,18 @@ class FoundryModelProvider:
         self._counter = token_counter
         self._settings = settings
         self._client = self._build_client(settings)
+        self._openai_client: object | None = None
 
     @property
     def deployment(self) -> str:
         return self._deployment
+
+    def _get_openai_client(self) -> object:
+        # Cache the authenticated OpenAI client so the credential's token cache
+        # is reused instead of shelling out to the Azure CLI on every request.
+        if self._openai_client is None:
+            self._openai_client = self._client.get_openai_client()  # type: ignore[attr-defined]
+        return self._openai_client
 
     @staticmethod
     def _build_client(settings: FoundryProjectSettings) -> object:
@@ -69,11 +77,10 @@ class FoundryModelProvider:
         # Real invocation path. Exercised only against a live Foundry project.
         start = time.perf_counter()
         try:
-            client = self._client
             # azure-ai-projects 2.x exposes an authenticated openai client rather
             # than the removed 1.x ``.inference`` namespace.
-            openai_client = client.get_openai_client()  # type: ignore[attr-defined]
-            result = openai_client.chat.completions.create(
+            openai_client = self._get_openai_client()
+            result = openai_client.chat.completions.create(  # pyright: ignore[reportAttributeAccessIssue]
                 model=self._settings.model_name or self._deployment,
                 messages=[{"role": "user", "content": request.prompt}],
                 max_completion_tokens=request.max_output_tokens,
@@ -100,7 +107,28 @@ def _raise_translated(exc: Exception) -> NoReturn:  # pragma: no cover - live ca
     if status == 429 or exc.__class__.__name__ in {"RateLimitError", "TooManyRequests"}:
         retry_after = _retry_after_from(exc)
         raise ThrottlingError(str(exc), retry_after_seconds=retry_after) from exc
+    if _is_transient_credential_error(exc):
+        raise TransientProviderError(f"Transient credential failure: {exc}") from exc
     raise ProviderError(f"Foundry completion failed: {exc}") from exc
+
+
+# Momentary auth blips (e.g. a failed ``az`` token-fetch subprocess) are retryable
+# rather than fatal, so a single flake does not abort a long unattended run.
+_TRANSIENT_CREDENTIAL_MARKERS = (
+    "failed to invoke the azure cli",
+    "azure cli not found",
+)
+_TRANSIENT_CREDENTIAL_TYPES = {
+    "CredentialUnavailableError",
+    "ClientAuthenticationError",
+}
+
+
+def _is_transient_credential_error(exc: Exception) -> bool:  # pragma: no cover - live call
+    if exc.__class__.__name__ in _TRANSIENT_CREDENTIAL_TYPES:
+        return True
+    message = str(exc).lower()
+    return any(marker in message for marker in _TRANSIENT_CREDENTIAL_MARKERS)
 
 
 def _retry_after_from(exc: Exception) -> float | None:  # pragma: no cover - live call
