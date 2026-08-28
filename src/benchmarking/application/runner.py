@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 from benchmarking.domain import BenchmarkMetrics, BenchmarkResult
 from benchmarking.infrastructure import (
@@ -28,9 +30,41 @@ from shared.configuration import (
     load_pricing_config,
 )
 from shared.types import ExecutionMode, Transcript
+from workloads.base import WorkloadScenario
 
 _logger = get_logger("benchmarking.runner")
 _BASE_BACKOFF_MS = 500.0
+
+# Extracts the literal prompt template from a prompt markdown file's first
+# fenced code block, so the human-readable docs around it are ignored.
+_FENCE_RE = re.compile(r"```[a-zA-Z0-9]*\n(.*?)\n```", re.DOTALL)
+
+
+def _load_prompt_file(path: Path, fallback: str) -> str:
+    """Return the fenced prompt template from ``path``, or ``fallback`` if absent."""
+    if not path.exists():
+        return fallback
+    match = _FENCE_RE.search(path.read_text(encoding="utf-8"))
+    return match.group(1).strip("\n") if match else fallback
+
+
+def _load_prompt_bundle(scenario: WorkloadScenario) -> PromptBundle:
+    """Build a PromptBundle from the scenario's prompts/ dir, defaulting per file.
+
+    Lets live runs exercise the production-representative prompts (and system
+    message) that live alongside the scenario instead of terse in-code defaults.
+    """
+    prompts_dir = scenario.root / "prompts"
+    defaults = PromptBundle()
+    return PromptBundle(
+        baseline=_load_prompt_file(prompts_dir / "baseline.md", defaults.baseline),
+        optimized=_load_prompt_file(prompts_dir / "optimized.md", defaults.optimized),
+        member_id_extraction=_load_prompt_file(
+            prompts_dir / "member-id-extraction.md", defaults.member_id_extraction
+        ),
+        compact=_load_prompt_file(prompts_dir / "compact.md", defaults.compact),
+        system=_load_prompt_file(prompts_dir / "system.md", defaults.system),
+    )
 
 
 def _execution_mode(value: str) -> ExecutionMode:
@@ -61,7 +95,7 @@ class BenchmarkRunner:
             token_counter=token_counter,
             mapping=mapping,
             caches=caches,
-            prompts=PromptBundle(),
+            prompts=_load_prompt_bundle(scenario),
             extractor=scenario.default_extractor(),
             chunker_name=config.chunking,
         )

@@ -84,7 +84,7 @@ class FoundryAgentProvider:
             openai_client = self._client.get_openai_client()  # type: ignore[attr-defined]
             result = openai_client.responses.create(
                 model=self._settings.model_name or self._deployment,
-                instructions=self._instructions,
+                instructions=request.system_prompt or self._instructions,
                 input=request.prompt,
                 max_output_tokens=request.max_output_tokens,
             )

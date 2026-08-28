@@ -14,6 +14,7 @@ from __future__ import annotations
 import time
 from typing import NoReturn
 
+from foundry.adapters._messages import build_chat_messages
 from foundry.projects import FoundryProjectSettings
 from shared.configuration import ModelDefinition
 from shared.contracts import ModelProvider, TokenCounter
@@ -100,7 +101,7 @@ class FoundryModelProvider:
             openai_client = self._get_openai_client()
             result = openai_client.chat.completions.create(  # pyright: ignore[reportAttributeAccessIssue]
                 model=self._settings.model_name or self._deployment,
-                messages=[{"role": "user", "content": request.prompt}],
+                messages=build_chat_messages(request),
                 max_completion_tokens=request.max_output_tokens,
             )
             content = result.choices[0].message.content or ""

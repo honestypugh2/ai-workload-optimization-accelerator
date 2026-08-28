@@ -33,7 +33,7 @@ def call_task(ctx: StrategyContext, task: str, text: str, template: str) -> Mode
                 latency_ms=0.5,
                 from_cache=True,
             )
-        request = ModelRequest(prompt=prompt, task=task)
+        request = ModelRequest(prompt=prompt, task=task, system_prompt=ctx.prompts.system or None)
         provider = ctx.router.route(request)
     # The model call is the slow, I/O-bound step; run it outside the lock so
     # concurrent transcripts overlap their requests.

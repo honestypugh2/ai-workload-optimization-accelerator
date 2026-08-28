@@ -1,5 +1,9 @@
 # Optimized prompt (token-minimized, structured)
 
+The literal template sent to the model is the fenced block below (`{transcript}`
+is replaced at runtime). It is loaded verbatim by the benchmark runner.
+
+```text
 Analyze the pre-processed call excerpt. Boilerplate and filler have already been
 removed and spoken digits normalized. Return ONLY minified JSON matching this schema:
 
@@ -13,3 +17,4 @@ Rules:
 Excerpt:
 
 {transcript}
+```

@@ -1,5 +1,9 @@
 # Baseline prompt (reference current-state)
 
+The literal template sent to the model is the fenced block below (`{transcript}`
+is replaced at runtime). It is loaded verbatim by the benchmark runner.
+
+```text
 You are analyzing a healthcare payer member-services call transcript.
 
 Read the entire transcript below and return a JSON object with:
@@ -12,3 +16,4 @@ Read the entire transcript below and return a JSON object with:
 Transcript:
 
 {transcript}
+```

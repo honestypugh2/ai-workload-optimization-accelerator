@@ -69,6 +69,8 @@ class PromptBundle:
     optimized: str = "Extract structured insights.\n\n{transcript}"
     member_id_extraction: str = "Extract the member id from the transcript.\n\n{transcript}"
     compact: str = "Return only these fields as JSON: {fields}.\n{transcript}"
+    # Optional system message applied to every model call. Empty means none.
+    system: str = ""
 
 
 @dataclass(slots=True)

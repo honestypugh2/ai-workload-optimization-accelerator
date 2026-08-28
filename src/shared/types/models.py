@@ -123,3 +123,6 @@ class ModelRequest:
     prompt: str
     task: str = "generic"
     max_output_tokens: int = 512
+    # Optional system message. When set, providers send it as a system role
+    # ahead of the user prompt so live runs exercise production-style prompting.
+    system_prompt: str | None = None

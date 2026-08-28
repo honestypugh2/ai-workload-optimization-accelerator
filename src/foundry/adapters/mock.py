@@ -39,6 +39,8 @@ class MockModelProvider:
 
     def complete(self, request: ModelRequest) -> ModelResponse:
         prompt_tokens = self._counter.count(request.prompt)
+        if request.system_prompt:
+            prompt_tokens += self._counter.count(request.system_prompt)
         output_tokens = self._synthetic_output_tokens(request, prompt_tokens)
         latency = (
             _BASE_LATENCY_MS + (prompt_tokens / 1000.0) * _MS_PER_1K_PROMPT_TOKENS
