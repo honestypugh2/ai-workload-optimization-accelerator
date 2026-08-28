@@ -17,6 +17,7 @@ AI workload scenarios can be added over time.
 > benchmarking, and design exploration only. It is **not** hardened for production
 > use and ships no production support guarantees. Before deploying anything derived
 > from it to production, design against:
+>
 > - [Microsoft Azure Well-Architected Framework (WAF)](https://learn.microsoft.com/en-us/azure/well-architected/)
 > - [Azure security baseline for Azure AI services / Cognitive Services](https://learn.microsoft.com/en-us/security/benchmark/azure/baselines/cognitive-services-security-baseline)
 >
