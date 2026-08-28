@@ -174,3 +174,6 @@ Thumbs.db
 /whatif_output.json
 
 docs/decisions
+
+test_venv/
+*.drawio

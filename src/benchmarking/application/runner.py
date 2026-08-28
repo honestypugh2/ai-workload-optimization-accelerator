@@ -114,7 +114,9 @@ class BenchmarkRunner:
 
         outcomes = self._process_dataset(strategy, dataset, ctx, config.max_concurrency)
         pricing = self._load_pricing(scenario, config)
-        metrics = self._aggregate(outcomes, quota, profile, scenario_config, pricing, caches)
+        metrics = self._aggregate(
+            outcomes, quota, profile, scenario_config, pricing, caches, config.max_concurrency
+        )
 
         return BenchmarkResult(
             name=config.name,
@@ -178,6 +180,7 @@ class BenchmarkRunner:
         scenario_config: ScenarioConfig,
         pricing: PricingConfig,
         caches: CacheBundle,
+        max_concurrency: int,
     ) -> BenchmarkMetrics:
         sink = MetricSink()
         total_input = 0
@@ -219,7 +222,11 @@ class BenchmarkRunner:
 
         transcripts = len(outcomes) or 1
         total_tokens = total_input + total_output
-        batch_seconds = minutes * 60.0 + sum(sink.samples.get("latency", [])) / 1000.0
+        # Wall-clock: the aggregate serial compute time overlaps across parallel
+        # workers, so divide by the number of transcripts processed concurrently.
+        workers = max(1, min(max_concurrency, transcripts))
+        serial_seconds = minutes * 60.0 + sum(sink.samples.get("latency", [])) / 1000.0
+        batch_seconds = serial_seconds / workers
         batch_minutes = batch_seconds / 60.0 or 1.0
 
         utilization = {
