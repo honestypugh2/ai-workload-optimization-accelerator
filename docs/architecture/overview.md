@@ -1,34 +1,15 @@
 # Architecture Overview
 
 The accelerator is a set of **independently importable modules** wired together
-by registries. There is no monolithic package — each concern lives on its own
-and is unit-tested in isolation.
+by typed registries and shared protocol contracts. There is no monolithic
+package: each concern lives on its own and is unit-tested in isolation.
 
-```mermaid
-flowchart TD
-    CLI[cli] --> BENCH[benchmarking]
-    CLI --> EVAL[evaluation]
-    CLI --> SCEN[workloads]
-    BENCH --> OPT[optimization]
-    BENCH --> FDRY[foundry]
-    EVAL --> SCEN
-    OPT --> FDRY
-    SCEN --> SHARED[shared]
-    OPT --> SHARED
-    BENCH --> SHARED
-    EVAL --> SHARED
-    FDRY --> SHARED
-    subgraph registries
-      REG[registry]
-    end
-    SCEN -. registers .-> REG
-    OPT -. registers .-> REG
-    EVAL -. registers .-> REG
-    STORE[storage] --> SHARED
-    OBS[observability] --> SHARED
-    UI[apps/ui] -. reads result JSON .-> BENCH
-    UI -. reads eval JSON .-> EVAL
-```
+![Detailed AI Workload Optimization Accelerator architecture](accelerator-architecture.svg)
+
+Solid arrows show runtime data or control flow. Dashed arrows show import-time
+registration, and dotted arrows show cross-cutting telemetry. The green path is
+the default credential-free local execution path; teal components are optional
+Azure deployment resources.
 
 ## Module responsibilities
 
