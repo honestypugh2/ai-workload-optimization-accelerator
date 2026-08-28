@@ -12,6 +12,17 @@ AI workload scenarios can be added over time.
 > All data is **synthetic**. No real PHI, PII, member data, call recordings,
 > credentials, or proprietary identifiers are included anywhere in this repo.
 
+> [!WARNING]
+> **Experimental — not production-ready.** This accelerator is for evaluation,
+> benchmarking, and design exploration only. It is **not** hardened for production
+> use and ships no production support guarantees. Before deploying anything derived
+> from it to production, design against:
+> - [Microsoft Azure Well-Architected Framework (WAF)](https://learn.microsoft.com/en-us/azure/well-architected/)
+> - [Azure security baseline for Azure AI services / Cognitive Services](https://learn.microsoft.com/en-us/security/benchmark/azure/baselines/cognitive-services-security-baseline)
+>
+> You are responsible for security, compliance (e.g. HIPAA/PHI), reliability, and
+> cost review of any production deployment.
+
 ## Highlights
 
 - **Runs locally without Azure credentials.** Benchmarks and evaluations use

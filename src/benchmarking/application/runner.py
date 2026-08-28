@@ -222,11 +222,13 @@ class BenchmarkRunner:
 
         transcripts = len(outcomes) or 1
         total_tokens = total_input + total_output
-        # Wall-clock: the aggregate serial compute time overlaps across parallel
-        # workers, so divide by the number of transcripts processed concurrently.
+        # Wall-clock is bounded by the slower of two floors: the rate-limit floor
+        # (tokens pushed through the TPM ceiling, concurrency-independent) and the
+        # compute floor (aggregate call latency shared across parallel workers).
         workers = max(1, min(max_concurrency, transcripts))
-        serial_seconds = minutes * 60.0 + sum(sink.samples.get("latency", [])) / 1000.0
-        batch_seconds = serial_seconds / workers
+        rate_limit_seconds = minutes * 60.0
+        compute_seconds = sum(sink.samples.get("latency", [])) / 1000.0
+        batch_seconds = max(rate_limit_seconds, compute_seconds / workers)
         batch_minutes = batch_seconds / 60.0 or 1.0
 
         utilization = {
