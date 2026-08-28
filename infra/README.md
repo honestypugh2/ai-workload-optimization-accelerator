@@ -64,12 +64,14 @@ az deployment group show -g rg-pcaopt-dev -n main \
 
 | Output | Maps to `.env` variable |
 |--------|-------------------------|
-| `foundryEndpoint` | `FOUNDRY_ENDPOINT` |
-| `foundryModelDeployment` | `FOUNDRY_MODEL_DEPLOYMENT` |
-| `foundryProjectName` | `FOUNDRY_PROJECT` |
-| `managedIdentityClientId` | `AZURE_CLIENT_ID` |
+| `foundryProjectEndpoint` | `FOUNDRY_PROJECT_ENDPOINT` |
+| `foundryModelDeployment` | `FOUNDRY_MODEL_NAME` |
 | `appInsightsConnectionString` | `APPLICATIONINSIGHTS_CONNECTION_STRING` |
-| `cosmosEndpoint` | `COSMOS_ENDPOINT` |
+| `managedIdentityClientId` | `AZURE_CLIENT_ID` (only for an explicit managed-identity/service-principal auth) |
+
+The accelerator authenticates with `DefaultAzureCredential`, so for interactive
+use you normally only need `FOUNDRY_PROJECT_ENDPOINT`, `FOUNDRY_MODEL_NAME`, and
+`AZURE_TENANT_ID` in `.env` plus `az login`.
 
 See [`workload-scenarios/post-call-analytics/configs/foundry.reference.yaml`](../workload-scenarios/post-call-analytics/configs/foundry.reference.yaml)
 for the matching Foundry-mode scenario config.

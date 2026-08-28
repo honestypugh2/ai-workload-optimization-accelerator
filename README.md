@@ -28,26 +28,76 @@ AI workload scenarios can be added over time.
 - **Azure-specific code is isolated in adapters**; Foundry and the Microsoft
   Agent Framework are optional dependencies.
 
-## Quick start
+## Prerequisites
+
+You only need the first two rows to run everything locally. The rest is required
+**only** when you want to benchmark against a real Microsoft Foundry deployment.
+
+| Requirement | Needed for | Notes |
+|-------------|-----------|-------|
+| **Python 3.11+** | Everything | `requires-python = ">=3.11"`. |
+| **[uv](https://docs.astral.sh/uv/)** | Everything | Manages the virtualenv and dependencies. Install: `curl -LsSf https://astral.sh/uv/install.sh \| sh` (or `pipx install uv` / `brew install uv`). |
+| **Azure CLI (`az`)** | Cloud runs only | Sign-in identity for `DefaultAzureCredential`. Install from the [Azure CLI docs](https://learn.microsoft.com/cli/azure/install-azure-cli). |
+| **An Azure subscription + Foundry deployment** | Cloud runs only | Either your own (see [Run against Azure](#run-against-azure)) or an existing Foundry project endpoint + model deployment. |
+| **Bicep CLI** | Deploying `infra/` only | Bundled with recent `az`; otherwise `az bicep install`. |
+
+> **No Azure account? You can still run the whole accelerator.** Benchmarks and
+> evaluations default to a deterministic **mock** model provider over synthetic
+> data, so `local` mode needs no credentials, network, or cost.
+
+## Setup (local, step by step)
 
 ```bash
+# 1. Clone the repository
+git clone https://github.com/honestypugh2/ai-workload-optimization-accelerator.git
+cd ai-workload-optimization-accelerator
+
+# 2. Install dependencies into a managed virtualenv (creates .venv)
 uv sync --extra dev
 
+# 3. Verify the CLI is wired up — lists available workload scenarios
 uv run aiwoa scenario list
 
-# Reference baseline benchmark (reproduces HTTP 429 throttling)
+# 4. Run the reference baseline benchmark (reproduces HTTP 429 throttling)
 uv run aiwoa benchmark run --scenario post-call-analytics \
   --config workload-scenarios/post-call-analytics/benchmarks/baseline-batch.yaml
 
-# Member-id evaluation with a 90% recall release gate
+# 5. Run the member-id evaluation (90% recall release gate)
 uv run aiwoa evaluate run --scenario post-call-analytics \
   --config workload-scenarios/post-call-analytics/evaluations/member-id.yaml
 
-# Compare two result files
+# 6. Compare two result files
 uv run aiwoa report compare \
   --baseline workload-scenarios/post-call-analytics/reports/baseline-batch.result.json \
   --candidate workload-scenarios/post-call-analytics/reports/routing-comparison.result.json
 ```
+
+`scripts/bootstrap.sh` runs steps 2–3 for you. Every command is also exposed
+through the [`Makefile`](Makefile) (`make sync`, `make benchmark`, `make evaluate`,
+`make all`).
+
+## How to use the repo — execution modes
+
+The same benchmark configs run in three modes. Set the mode in the config
+(`execution_mode:`) or override it per run with `--mode`:
+
+| Mode | What it does | Credentials | Cost |
+|------|--------------|-------------|------|
+| `local` *(default)* | Deterministic **mock** provider over synthetic transcripts. Reproducible; used for all the modeled scorecards. | none | none |
+| `dry-run` | Validates config, prompts, routing, and cost model **without** calling a model. | none | none |
+| `azure` | Real inference against your Foundry `gpt-nano` deployment. Produces live latency/throughput/cost. | `az login` + `.env` | Azure token spend |
+
+```bash
+# Same config, different mode + scale, written to an explicit output file
+uv run aiwoa benchmark run --scenario post-call-analytics \
+  --config workload-scenarios/post-call-analytics/benchmarks/current-state-azure.yaml \
+  --mode azure --transcripts 30 --concurrency 24 \
+  --output workload-scenarios/post-call-analytics/reports/smoke.result.json
+```
+
+Useful `benchmark run` flags: `--mode` (override execution mode), `--transcripts`
+(override transcript count for smoke vs full runs), `--concurrency` (parallel
+transcripts), `--output` (result JSON path).
 
 ### End-to-end demo: current state → optimized
 
@@ -71,19 +121,99 @@ uv run aiwoa report scorecard \
   --run "Optimized target=reports/optimized-target.result.json::reports/member-id.eval.json"
 ```
 
-## Deploy to your Azure subscription
+## Run against Azure
+
+Local mode needs nothing. To produce **live** latency/throughput/cost numbers you
+need a Microsoft Foundry model deployment and a signed-in identity. Follow the
+three steps below.
+
+The Azure adapters are an optional dependency, so install the `foundry` extra
+before running in `azure` mode:
+
+```bash
+uv sync --extra dev --extra foundry
+```
+
+### 1. Provision infrastructure (optional — skip if you already have a Foundry deployment)
 
 [`infra/`](infra/) contains parameterized Bicep to stand up the scenario in your
 own subscription: Microsoft Foundry with a `gpt-nano` Standard deployment, storage,
-managed identity + RBAC, monitoring, and optional Cosmos DB, Redis, an API
+managed identity + RBAC, and monitoring — plus optional Cosmos DB, Redis, an API
 Management AI gateway, and Container Apps jobs. Slow/expensive components are
-toggle-gated so you can start minimal and add optimization levers as you benchmark
-them. See [infra/README.md](infra/README.md).
+toggle-gated (default **off**), so you start minimal and add optimization levers as
+you benchmark them.
 
 ```bash
+# Sign in and select the target subscription
+az login
+az account set --subscription "<your-subscription-id>"
+
+# Create a resource group
 az group create -n rg-pcaopt-dev -l eastus2
-az deployment group create -g rg-pcaopt-dev -f infra/main.bicep -p infra/main.bicepparam
+
+# Review parameters (workload name, model, region quota) — see infra/main.bicepparam
+$EDITOR infra/main.bicepparam
+
+# Preview, then deploy
+az deployment group what-if -g rg-pcaopt-dev -f infra/main.bicep -p infra/main.bicepparam
+az deployment group create  -g rg-pcaopt-dev -f infra/main.bicep -p infra/main.bicepparam
 ```
+
+Read the deployment outputs you need for `.env`:
+
+```bash
+az deployment group show -g rg-pcaopt-dev -n main --query properties.outputs -o json
+```
+
+See [infra/README.md](infra/README.md) for the full component list, toggles, and
+the HIPAA/PHI hardening notes.
+
+### 2. Configure credentials (`.env`)
+
+Copy the template and fill in your Foundry endpoint and deployment name. These are
+the exact variable names the code reads (see
+[src/foundry/projects/settings.py](src/foundry/projects/settings.py)):
+
+```bash
+cp .env.example .env
+```
+
+```bash
+# .env — never commit real values (.env is gitignored)
+FOUNDRY_PROJECT_ENDPOINT=https://<your-account>.services.ai.azure.com/api/projects/<your-project>
+FOUNDRY_MODEL_NAME=gpt-nano            # the deployment name, e.g. gpt-nano
+AZURE_TENANT_ID=<your-tenant-guid>     # pins DefaultAzureCredential to the right tenant
+AIWOA_GATEWAY_KIND=direct              # direct model inference (default)
+AIWOA_EXECUTION_MODE=azure             # or leave local and use --mode azure per run
+```
+
+Authenticate with the identity that has access to the Foundry project (no secrets
+in code — `DefaultAzureCredential` uses your signed-in session):
+
+```bash
+az login --tenant <your-tenant-guid>
+```
+
+### 3. Run a live benchmark
+
+Start with a small smoke run, then scale up:
+
+```bash
+# 30-transcript smoke run against the real deployment
+uv run aiwoa benchmark run --scenario post-call-analytics \
+  --config workload-scenarios/post-call-analytics/benchmarks/current-state-azure.yaml \
+  --mode azure --transcripts 30 --concurrency 24 \
+  --output workload-scenarios/post-call-analytics/reports/smoke.result.json
+
+# Full daily batch (7,000 transcripts)
+uv run aiwoa benchmark run --scenario post-call-analytics \
+  --config workload-scenarios/post-call-analytics/benchmarks/current-state-azure.yaml \
+  --mode azure \
+  --output workload-scenarios/post-call-analytics/reports/current-state.result.json
+```
+
+Result JSON and logs land in `workload-scenarios/post-call-analytics/reports/`,
+which is **gitignored** — live results and PHI-adjacent data never get committed.
 
 ## Architecture
 
