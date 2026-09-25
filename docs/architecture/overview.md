@@ -46,5 +46,9 @@ default path requires no Azure credentials.
 3. The selected optimization strategy + router process each transcript through
    providers.
 4. `BenchmarkRunner` aggregates metrics into a `BenchmarkResult` written as
-   `*.result.json`.
-5. `aiwoa report compare` (or the UI) diffs baseline vs optimized.
+   `<name>.<mode>.result.json`. The result carries `provenance` (effective config
+   hash, overrides, deployments hit, git commit) and labels throttling/timing as
+   `modeled` (quota simulation) or `observed` (live 429s and wall clock).
+5. `aiwoa report compare` / `aiwoa report scorecard` (or the UI) diff baseline vs
+   optimized, refusing mixed mode/backend/volume comparisons unless
+   `--allow-mixed` is passed.

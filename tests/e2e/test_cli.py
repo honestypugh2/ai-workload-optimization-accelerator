@@ -151,3 +151,114 @@ def test_report_scorecard_from_config(tmp_path) -> None:
 def test_report_scorecard_requires_runs_or_config() -> None:
     result = runner.invoke(app, ["report", "scorecard"])
     assert result.exit_code == 1
+
+
+def _bench(out: Path, *extra: str) -> None:
+    result = runner.invoke(
+        app,
+        [
+            "benchmark",
+            "run",
+            "--scenario",
+            "post-call-analytics",
+            "--config",
+            "workload-scenarios/post-call-analytics/benchmarks/baseline-batch.yaml",
+            "--output",
+            str(out),
+            *extra,
+        ],
+    )
+    assert result.exit_code == 0, result.stdout
+
+
+def test_default_output_name_includes_execution_mode() -> None:
+    from cli.commands.benchmark import _default_output
+
+    local = _default_output("post-call-analytics", "current-state-azure", "local")
+    live = _default_output("post-call-analytics", "current-state-azure", "azure")
+    assert local.name == "current-state-azure.local.result.json"
+    assert live.name == "current-state-azure.azure.result.json"
+
+
+def test_mode_override_warns_and_is_recorded(tmp_path) -> None:
+    out = tmp_path / "r.json"
+    result = runner.invoke(
+        app,
+        [
+            "benchmark",
+            "run",
+            "--scenario",
+            "post-call-analytics",
+            "--config",
+            "workload-scenarios/post-call-analytics/benchmarks/baseline-batch.yaml",
+            "--mode",
+            "dry-run",
+            "--transcripts",
+            "5",
+            "--output",
+            str(out),
+        ],
+    )
+    assert result.exit_code == 0
+    assert "overrides the config's execution_mode" in result.stdout
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    assert payload["provenance"]["config_execution_mode"] == "local"
+    assert payload["provenance"]["config_overrides"]["execution_mode"] == "dry-run"
+
+
+def test_scorecard_refuses_mixed_volume_without_flag(tmp_path) -> None:
+    full, smoke = tmp_path / "full.json", tmp_path / "smoke.json"
+    _bench(full, "--transcripts", "40")
+    _bench(smoke, "--transcripts", "5")
+
+    refused = runner.invoke(
+        app, ["report", "scorecard", "--run", f"full={full}", "--run", f"smoke={smoke}"]
+    )
+    assert refused.exit_code == 1
+    assert "not comparable" in refused.stdout
+
+    out = tmp_path / "scorecard.json"
+    allowed = runner.invoke(
+        app,
+        [
+            "report",
+            "scorecard",
+            "--run",
+            f"full={full}",
+            "--run",
+            f"smoke={smoke}",
+            "--allow-mixed",
+            "--output",
+            str(out),
+        ],
+    )
+    assert allowed.exit_code == 0
+    assert "MIXED COMPARISON" in allowed.stdout
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    assert payload["mixed"] is True
+    assert payload["provenance"][1]["transcripts"] == 5
+    assert any(i["check"] == "transcripts" for i in payload["comparability_issues"])
+
+
+def test_compare_refuses_mixed_modes_without_flag(tmp_path) -> None:
+    local, dry = tmp_path / "local.json", tmp_path / "dry.json"
+    _bench(local, "--transcripts", "10")
+    _bench(dry, "--transcripts", "10", "--mode", "dry-run")
+
+    args = ["report", "compare", "--baseline", str(local), "--candidate", str(dry)]
+    refused = runner.invoke(app, args)
+    assert refused.exit_code == 1
+    assert "execution_mode" in refused.stdout
+
+    allowed = runner.invoke(app, [*args, "--allow-mixed"])
+    assert allowed.exit_code == 0
+    assert "MIXED" in allowed.stdout
+
+
+def test_compare_like_for_like_runs_succeeds(tmp_path) -> None:
+    a, b = tmp_path / "a.json", tmp_path / "b.json"
+    _bench(a, "--transcripts", "10")
+    _bench(b, "--transcripts", "10")
+    result = runner.invoke(app, ["report", "compare", "--baseline", str(a), "--candidate", str(b)])
+    assert result.exit_code == 0
+    assert "not comparable" not in result.stdout

@@ -1,0 +1,33 @@
+# Assessment scorecard (MODELED): current state vs the future-state options,
+# all simulated locally at full daily volume (7,000 transcripts).
+#
+# Every column comes from the same execution mode (local mock provider), the
+# same volume, and the same TPM quota simulation, so the columns are directly
+# comparable. Batch time, throughput, and 429 rate are MODELED from each config's
+# deployment topology; they are not live Azure measurements.
+#
+# Produce the inputs (no Azure cost), then render:
+#   for cfg in current-state-azure option-a-azure option-b-azure option-c-azure \
+#              foundry-current-config-azure; do
+#     aiwoa benchmark run --scenario post-call-analytics \
+#       --config workload-scenarios/post-call-analytics/benchmarks/$cfg.yaml --mode local
+#   done
+#   aiwoa report scorecard \
+#     --config workload-scenarios/post-call-analytics/scorecards/current-state-vs-options.modeled.yaml
+#
+# For live Azure measurements use current-state-vs-options.live.yaml instead.
+# To add the quality dimension, point each run's `evaluation:` at a member-id
+# evaluation result JSON.
+name: current-state-vs-options-modeled
+description: Current state vs Option A/B/C, modeled locally at 7,000/day — ops, cost, and quality.
+runs:
+  - label: current-state
+    benchmark: ../reports/current-state-azure.local.result.json
+  - label: option-a
+    benchmark: ../reports/option-a-azure.local.result.json
+  - label: option-b
+    benchmark: ../reports/option-b-azure.local.result.json
+  - label: option-c
+    benchmark: ../reports/option-c-azure.local.result.json
+  - label: foundry-current
+    benchmark: ../reports/foundry-current-config-azure.local.result.json

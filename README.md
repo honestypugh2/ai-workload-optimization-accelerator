@@ -80,8 +80,8 @@ uv run aiwoa evaluate run --scenario post-call-analytics \
 
 # 6. Compare two result files
 uv run aiwoa report compare \
-  --baseline workload-scenarios/post-call-analytics/reports/baseline-batch.result.json \
-  --candidate workload-scenarios/post-call-analytics/reports/routing-comparison.result.json
+  --baseline workload-scenarios/post-call-analytics/reports/baseline-batch.local.result.json \
+  --candidate workload-scenarios/post-call-analytics/reports/routing-comparison.local.result.json
 ```
 
 `scripts/bootstrap.sh` runs steps 2–3 for you. Every command is also exposed
@@ -104,12 +104,31 @@ The same benchmark configs run in three modes. Set the mode in the config
 uv run aiwoa benchmark run --scenario post-call-analytics \
   --config workload-scenarios/post-call-analytics/benchmarks/current-state-azure.yaml \
   --mode azure --transcripts 30 --concurrency 24 \
-  --output workload-scenarios/post-call-analytics/reports/smoke.result.json
+  --output workload-scenarios/post-call-analytics/reports/smoke.azure.result.json
 ```
 
 Useful `benchmark run` flags: `--mode` (override execution mode), `--transcripts`
 (override transcript count for smoke vs full runs), `--concurrency` (parallel
-transcripts), `--output` (result JSON path).
+transcripts), `--output` (result JSON path). Without `--output`, results go to
+`reports/<name>.<mode>.result.json`, so a local projection of an `*-azure.yaml`
+config (`current-state-azure.local.result.json`) never shares a name with a live
+run (`current-state-azure.azure.result.json`).
+
+### Comparing results honestly
+
+Every result records **provenance**: the effective config and its SHA-256, CLI
+overrides, deployment profile, the real deployment each model alias hit, the
+pricing-file hash, git commit, and timestamp. It also records whether 429s and
+batch time were **modeled** (quota simulation, `local` / `dry-run`) or
+**observed** (real HTTP 429s and wall clock, `azure`), and whether cost/day was
+**extrapolated** from a smaller sample.
+
+`aiwoa report compare` and `aiwoa report scorecard` use this to refuse
+like-for-unlike comparisons: runs that differ from the baseline in execution
+mode, backend, 429/timing source, or volume by more than 2x exit with an error
+unless you pass `--allow-mixed`. That is why there are two scorecards, one
+modeled and one live. See
+[BENCHMARKS.md](workload-scenarios/post-call-analytics/BENCHMARKS.md#step-5--build-the-scorecard).
 
 ### End-to-end demo: current state → optimized
 
@@ -129,8 +148,8 @@ the baseline column:
 
 ```bash
 uv run aiwoa report scorecard \
-  --run "Current state=reports/current-state-batch.result.json::reports/member-id-baseline.eval.json" \
-  --run "Optimized target=reports/optimized-target.result.json::reports/member-id.eval.json"
+  --run "Current state=reports/current-state-batch.local.result.json::reports/member-id-baseline.eval.json" \
+  --run "Optimized target=reports/optimized-target.local.result.json::reports/member-id.eval.json"
 ```
 
 ## Run against Azure
@@ -215,14 +234,18 @@ Start with a small smoke run, then scale up:
 uv run aiwoa benchmark run --scenario post-call-analytics \
   --config workload-scenarios/post-call-analytics/benchmarks/current-state-azure.yaml \
   --mode azure --transcripts 30 --concurrency 24 \
-  --output workload-scenarios/post-call-analytics/reports/smoke.result.json
+  --output workload-scenarios/post-call-analytics/reports/smoke.azure.result.json
 
-# Full daily batch (7,000 transcripts)
+# Full daily batch (7,000 transcripts) -> reports/current-state-azure.azure.result.json
 uv run aiwoa benchmark run --scenario post-call-analytics \
   --config workload-scenarios/post-call-analytics/benchmarks/current-state-azure.yaml \
-  --mode azure \
-  --output workload-scenarios/post-call-analytics/reports/current-state.result.json
+  --mode azure
 ```
+
+Live results report **observed** HTTP 429s, retries, and wall-clock batch time.
+In `direct` mode every model alias is served by the one `FOUNDRY_MODEL_NAME`
+deployment; the result's `provenance.model_deployments` and notes make that
+explicit.
 
 Result JSON and logs land in `workload-scenarios/post-call-analytics/reports/`,
 which is **gitignored** — live results and PHI-adjacent data never get committed.

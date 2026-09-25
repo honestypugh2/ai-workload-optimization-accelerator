@@ -79,15 +79,21 @@ def test_scorecard_config_accepts_benchmark_runs() -> None:
     assert cfg.runs[1].benchmark == "../reports/option-a-azure.result.json"
 
 
-def test_shipped_scorecard_config_loads() -> None:
+def test_shipped_scorecard_configs_load() -> None:
     from shared.configuration import load_scorecard_config
 
-    path = default_scenario_root() / "scorecards" / "current-state-vs-options.yaml"
-    cfg = load_scorecard_config(path)
-    assert [r.label for r in cfg.runs] == [
+    scorecards = default_scenario_root() / "scorecards"
+    modeled = load_scorecard_config(scorecards / "current-state-vs-options.modeled.yaml")
+    assert [r.label for r in modeled.runs] == [
         "current-state",
         "option-a",
         "option-b",
         "option-c",
         "foundry-current",
     ]
+    # Each scorecard draws from exactly one execution mode so columns are like-for-like.
+    assert all(r.benchmark and r.benchmark.endswith(".local.result.json") for r in modeled.runs)
+
+    live = load_scorecard_config(scorecards / "current-state-vs-options.live.yaml")
+    assert [r.label for r in live.runs] == ["current-state", "option-b"]
+    assert all(r.benchmark and r.benchmark.endswith(".azure.result.json") for r in live.runs)

@@ -18,9 +18,10 @@ app = typer.Typer(no_args_is_help=True, add_completion=False)
 _console = Console()
 
 
-def _default_output(scenario: str, name: str) -> Path:
+def _default_output(scenario: str, name: str, mode: str) -> Path:
+    """``reports/<name>.<mode>.result.json`` so local and live runs never collide."""
     slug = name.replace(" ", "-").lower()
-    return Path("workload-scenarios") / scenario / "reports" / f"{slug}.result.json"
+    return Path("workload-scenarios") / scenario / "reports" / f"{slug}.{mode}.result.json"
 
 
 def _print_summary(result: BenchmarkResult) -> None:
@@ -28,7 +29,14 @@ def _print_summary(result: BenchmarkResult) -> None:
     table = Table(title=f"Benchmark: {result.name}")
     table.add_column("Metric", style="cyan")
     table.add_column("Value", style="green", justify="right")
+    extrapolated = (
+        f"yes (x{m.cost_extrapolation_factor:,.1f} from {m.transcripts:,})"
+        if m.cost_extrapolated
+        else "no"
+    )
     rows = [
+        ("Mode / backend", f"{result.execution_mode} / {result.execution_backend}"),
+        ("429 / timing source", f"{m.throttling_source} / {m.timing_source}"),
         ("Strategy", result.strategy),
         ("Routing", result.routing),
         ("Transcripts", str(m.transcripts)),
@@ -43,6 +51,7 @@ def _print_summary(result: BenchmarkResult) -> None:
         ("Avg tokens/transcript", f"{m.average_tokens_per_transcript:,.0f}"),
         (f"Cost/day ({result.currency})", f"{m.cost_per_day:,.2f}"),
         (f"Cost/month ({result.currency})", f"{m.cost_per_month:,.2f}"),
+        ("Cost extrapolated", extrapolated),
         ("HTTP 429 rate", f"{m.http_429_rate:.1%}"),
         ("Retries", str(m.retry_count)),
         ("Cache hit rate", f"{m.cache_hit_rate:.1%}"),
@@ -51,6 +60,8 @@ def _print_summary(result: BenchmarkResult) -> None:
     for label, value in rows:
         table.add_row(label, value)
     _console.print(table)
+    for note in result.notes:
+        _console.print(f"[dim]• {note}[/dim]")
 
 
 @app.command("run")
@@ -86,9 +97,21 @@ def run(
             overrides["execution_mode"] = mode.value
         if concurrency is not None:
             overrides["max_concurrency"] = concurrency
+        if mode is not None and mode.value != cfg.execution_mode:
+            _console.print(
+                f"[yellow]Warning: --mode {mode.value} overrides the config's execution_mode "
+                f"'{cfg.execution_mode}'. The result records both; its file name uses "
+                f"'{mode.value}'.[/yellow]"
+            )
+        config_mode = cfg.execution_mode
         if overrides:
             cfg = cfg.model_copy(update=overrides)
-        result = run_benchmark(cfg)
+        result = run_benchmark(
+            cfg,
+            config_path=config,
+            overrides=overrides,
+            config_execution_mode=config_mode,
+        )
     except AcceleratorError as exc:
         _console.print(f"[red]Benchmark failed: {exc}[/red]")
         raise typer.Exit(code=1) from exc
@@ -99,7 +122,7 @@ def run(
             f"scenario '{result.scenario}'.[/yellow]"
         )
 
-    out_path = output or _default_output(result.scenario, result.name)
+    out_path = output or _default_output(result.scenario, result.name, result.execution_mode)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(result.model_dump_json(indent=2), encoding="utf-8")
 

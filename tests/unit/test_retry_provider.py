@@ -137,3 +137,74 @@ def test_transient_provider_errors_reraise_after_exhausting_retries() -> None:
 def test_deployment_delegates_to_inner() -> None:
     provider = RetryingProvider(_FlakyProvider(throttles=0), sleep=lambda _: None)
     assert provider.deployment == "flaky"
+
+
+def test_stats_count_observed_throttles_and_retries() -> None:
+    inner = _FlakyProvider(throttles=2)
+    provider = RetryingProvider(inner, max_retries=5, sleep=lambda _: None, rand=lambda: 1.0)
+
+    provider.complete(_REQUEST)
+    provider.complete(_REQUEST)
+
+    stats = provider.stats
+    assert stats.attempts == 4  # 2 throttled + 2 successful
+    assert stats.throttles == 2
+    assert stats.retries == 2
+    assert stats.successes == 2
+    assert stats.failures == 0
+    assert stats.http_429_rate == 0.5
+    assert stats.backoff_seconds == 0.5 + 1.0
+
+
+def test_stats_record_exhausted_retries_as_failure() -> None:
+    provider = RetryingProvider(_FlakyProvider(throttles=10), max_retries=1, sleep=lambda _: None)
+
+    with pytest.raises(ThrottlingError):
+        provider.complete(_REQUEST)
+
+    stats = provider.stats
+    assert stats.attempts == 2
+    assert stats.throttles == 2
+    assert stats.retries == 1
+    assert stats.failures == 1
+
+
+def test_stats_combine_sums_providers() -> None:
+    from foundry.adapters import RetryStats
+
+    total = RetryStats.combine([RetryStats(attempts=2, throttles=1), RetryStats(attempts=3)])
+    assert total.attempts == 5
+    assert total.throttles == 1
+    assert total.http_429_rate == 0.2
+
+
+class _HttpError(Exception):
+    def __init__(self, status_code: int | None) -> None:
+        super().__init__(f"HTTP {status_code}")
+        self.status_code = status_code
+
+
+class APIConnectionError(Exception):
+    """Stand-in with the same class name the OpenAI SDK raises on network failure."""
+
+
+@pytest.mark.parametrize("status", [408, 409, 500, 502, 503, 504])
+def test_server_and_timeout_statuses_are_retryable(status: int) -> None:
+    from foundry.adapters._retry import is_retryable_server_error
+
+    assert is_retryable_server_error(_HttpError(status))
+
+
+@pytest.mark.parametrize("status", [400, 401, 403, 404, 422, 429])
+def test_client_errors_and_throttles_are_not_server_retryable(status: int) -> None:
+    from foundry.adapters._retry import is_retryable_server_error
+
+    # 429 is handled separately as ThrottlingError so it is counted as throttling.
+    assert not is_retryable_server_error(_HttpError(status))
+
+
+def test_connection_errors_without_status_are_retryable() -> None:
+    from foundry.adapters._retry import is_retryable_server_error
+
+    assert is_retryable_server_error(APIConnectionError("reset by peer"))
+    assert not is_retryable_server_error(ValueError("bad input"))

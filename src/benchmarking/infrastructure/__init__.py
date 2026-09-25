@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from benchmarking.infrastructure.provenance import collect_provenance, config_fingerprint
 from benchmarking.infrastructure.providers import (
     assemble_router,
     build_providers,
@@ -16,6 +17,8 @@ __all__ = [
     "build_providers",
     "build_quota_model",
     "build_states",
+    "collect_provenance",
+    "config_fingerprint",
     "resolve_scenario_deployment_profile",
     "task_alias_map",
 ]

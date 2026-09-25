@@ -110,3 +110,28 @@ th.num {
   color: #9aa4b2;
   font-style: italic;
 }
+
+.warning,
+.caveat {
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 12px 0;
+}
+
+.warning {
+  background: #3b1d1d;
+  border: 1px solid #f87171;
+  color: #fecaca;
+}
+
+.caveat {
+  background: #1f2330;
+  border: 1px solid #3a4052;
+  color: #c7ceda;
+}
+
+.warning ul,
+.caveat ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}

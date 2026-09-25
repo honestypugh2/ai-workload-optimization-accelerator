@@ -12,6 +12,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
+from reporting.comparability import (
+    DEFAULT_MAX_VOLUME_RATIO,
+    ComparabilityIssue,
+    RunMeta,
+    check_comparability,
+    has_blocking,
+)
+
 Category = Literal["Operations", "Cost", "Quality"]
 Source = Literal["benchmark", "evaluation"]
 
@@ -82,6 +90,7 @@ class ScorecardRun:
     label: str
     benchmark: dict[str, float] = field(default_factory=dict)
     evaluation: dict[str, float] = field(default_factory=dict)
+    meta: RunMeta | None = None
 
     def value(self, spec: MetricSpec) -> float | None:
         source = self.benchmark if spec.source == "benchmark" else self.evaluation
@@ -126,12 +135,20 @@ class Scorecard:
 
     runs: tuple[ScorecardRun, ...]
     rows: tuple[ScorecardRow, ...]
+    issues: tuple[ComparabilityIssue, ...] = ()
 
     def rows_for(self, category: Category) -> list[ScorecardRow]:
         return [row for row in self.rows if row.spec.category == category]
 
+    @property
+    def is_mixed(self) -> bool:
+        """True when runs differ in mode, backend, or scale (see comparability)."""
+        return has_blocking(self.issues)
 
-def build_scorecard(runs: list[ScorecardRun]) -> Scorecard:
+
+def build_scorecard(
+    runs: list[ScorecardRun], *, max_volume_ratio: float = DEFAULT_MAX_VOLUME_RATIO
+) -> Scorecard:
     """Assemble a scorecard, keeping only metrics present in at least one run."""
     rows: list[ScorecardRow] = []
     for spec in METRIC_SPECS:
@@ -139,7 +156,10 @@ def build_scorecard(runs: list[ScorecardRun]) -> Scorecard:
         if all(v is None for v in values):
             continue
         rows.append(ScorecardRow(spec=spec, values=values))
-    return Scorecard(runs=tuple(runs), rows=tuple(rows))
+    issues = check_comparability(
+        [(run.label, run.meta) for run in runs], max_volume_ratio=max_volume_ratio
+    )
+    return Scorecard(runs=tuple(runs), rows=tuple(rows), issues=tuple(issues))
 
 
 def _extract_benchmark_metrics(data: dict) -> dict[str, float]:
@@ -160,10 +180,12 @@ def load_run(
     """Load a scorecard run from benchmark and/or evaluation result JSON files."""
     benchmark: dict[str, float] = {}
     evaluation: dict[str, float] = {}
+    meta: RunMeta | None = None
     if benchmark_path is not None:
         data = json.loads(Path(benchmark_path).read_text(encoding="utf-8"))
         benchmark = _extract_benchmark_metrics(data)
+        meta = RunMeta.from_result(data)
     if evaluation_path is not None:
         data = json.loads(Path(evaluation_path).read_text(encoding="utf-8"))
         evaluation = _extract_evaluation_metrics(data)
-    return ScorecardRun(label=label, benchmark=benchmark, evaluation=evaluation)
+    return ScorecardRun(label=label, benchmark=benchmark, evaluation=evaluation, meta=meta)

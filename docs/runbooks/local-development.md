@@ -21,7 +21,7 @@ uv run aiwoa scenario show post-call-analytics
 ```bash
 uv run aiwoa benchmark run \
   workload-scenarios/post-call-analytics/benchmarks/baseline-batch.yaml
-# writes <name>.result.json under the scenario's reports/ folder
+# writes <name>.<mode>.result.json under the scenario's reports/ folder
 ```
 
 ## Compare baseline vs optimized

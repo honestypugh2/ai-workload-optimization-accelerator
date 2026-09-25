@@ -13,5 +13,5 @@ REPORTS="workload-scenarios/${SCENARIO}/reports"
 echo
 echo "==> Baseline vs optimized comparison"
 uv run aiwoa report compare \
-  --baseline "${REPORTS}/baseline-batch.result.json" \
-  --candidate "${REPORTS}/token-optimization.result.json"
+  --baseline "${REPORTS}/baseline-batch.local.result.json" \
+  --candidate "${REPORTS}/token-optimization.local.result.json"

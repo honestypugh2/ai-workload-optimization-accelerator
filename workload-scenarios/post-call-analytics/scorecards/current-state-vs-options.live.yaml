@@ -1,0 +1,30 @@
+# Assessment scorecard (LIVE): current state vs Option B, both measured on real
+# Azure with the same backend and the same transcript count.
+#
+# 429 rate, retries, and batch time are OBSERVED (real HTTP 429s and wall clock).
+# Run every column with the same --transcripts value; the scorecard refuses to
+# render if volumes differ by more than 2x (see `--max-volume-ratio`).
+#
+# In `direct` mode every model alias is served by FOUNDRY_MODEL_NAME, so tiered
+# routing is not exercised live; the scorecard flags this as a caveat. Use an
+# APIM/LiteLLM gateway with AIWOA_GATEWAY_DEPLOYMENTS to route tiers to distinct
+# deployments.
+#
+# Produce the inputs (incurs Azure token spend), then render:
+#   for cfg in current-state-azure option-b-azure; do
+#     aiwoa benchmark run --scenario post-call-analytics \
+#       --config workload-scenarios/post-call-analytics/benchmarks/$cfg.yaml \
+#       --mode azure --transcripts 300
+#   done
+#   aiwoa report scorecard \
+#     --config workload-scenarios/post-call-analytics/scorecards/current-state-vs-options.live.yaml
+#
+# scripts/run-option-b-live.sh does all of the above. Add option-a/option-c
+# columns once their multi-deployment topology exists in your subscription.
+name: current-state-vs-options-live
+description: Current state vs Option B, measured live on Azure at equal volume — observed ops and cost.
+runs:
+  - label: current-state
+    benchmark: ../reports/current-state-azure.azure.result.json
+  - label: option-b
+    benchmark: ../reports/option-b-azure.azure.result.json

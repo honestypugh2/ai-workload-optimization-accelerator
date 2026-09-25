@@ -10,33 +10,113 @@ from rich.console import Console
 from rich.table import Table
 
 from evaluation import compare_results
-from reporting import ScorecardRow, build_scorecard, load_run
+from reporting import (
+    DEFAULT_MAX_VOLUME_RATIO,
+    ComparabilityIssue,
+    RunMeta,
+    ScorecardRow,
+    ScorecardRun,
+    build_scorecard,
+    check_comparability,
+    has_blocking,
+    load_run,
+)
 from shared.configuration import load_scorecard_config
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 _console = Console()
 
+_ALLOW_MIXED_HELP = (
+    "Proceed even when runs differ in execution mode, backend, throttling source, or "
+    "volume. The output is labelled as a mixed comparison."
+)
+_VOLUME_RATIO_HELP = "Largest transcript-count ratio vs the baseline treated as comparable."
 
-def _load_metrics(path: Path) -> dict[str, float]:
-    data = json.loads(path.read_text(encoding="utf-8"))
+
+def _load_result(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _numeric_metrics(data: dict) -> dict[str, float]:
     metrics = data.get("metrics", {})
-    # Keep only numeric metrics; benchmark utilization is a nested dict.
-    return {k: float(v) for k, v in metrics.items() if isinstance(v, (int, float))}
+    # Keep only numeric metrics; benchmark utilization is a nested dict. bool is an
+    # int subclass, so exclude flags such as cost_extrapolated from the diff.
+    return {
+        k: float(v)
+        for k, v in metrics.items()
+        if isinstance(v, (int, float)) and not isinstance(v, bool)
+    }
+
+
+def _meta_or_none(data: dict) -> RunMeta | None:
+    """Benchmark results carry execution provenance; evaluation results do not."""
+    return RunMeta.from_result(data) if "execution_mode" in data else None
+
+
+def _print_issues(
+    issues: list[ComparabilityIssue], *, allow_mixed: bool, run_labels: list[str] | None = None
+) -> None:
+    if not issues:
+        return
+    blocking = [i for i in issues if i.blocking]
+    caveats = [i for i in issues if not i.blocking]
+    if blocking:
+        style = "yellow" if allow_mixed else "red"
+        heading = (
+            "MIXED COMPARISON (--allow-mixed): these runs are not like-for-like"
+            if allow_mixed
+            else "Runs are not comparable"
+        )
+        _console.print(f"[bold {style}]{heading}:[/bold {style}]")
+        for issue in blocking:
+            _console.print(f"[{style}]  ✗ {issue.label}: {issue.message}[/{style}]")
+    if caveats:
+        # Collapse a caveat shared by several runs into one line.
+        grouped: dict[str, list[str]] = {}
+        for issue in caveats:
+            grouped.setdefault(issue.message, []).append(issue.label)
+        _console.print("[bold]Caveats:[/bold]")
+        for message, labels in grouped.items():
+            everyone = run_labels is not None and len(labels) > 1 and set(labels) >= set(run_labels)
+            who = "all runs" if everyone else ", ".join(labels)
+            _console.print(f"[dim]  • {who}: {message}[/dim]")
+
+
+def _abort_if_mixed(issues: list[ComparabilityIssue], *, allow_mixed: bool) -> None:
+    if has_blocking(issues) and not allow_mixed:
+        _console.print(
+            "[red]Refusing to compare. Re-run the benchmarks with the same --mode, backend, "
+            "and --transcripts, or pass --allow-mixed to override.[/red]"
+        )
+        raise typer.Exit(code=1)
 
 
 @app.command("compare")
 def compare(
     baseline: Path = typer.Option(..., "--baseline", help="Baseline result JSON path."),
     candidate: Path = typer.Option(..., "--candidate", help="Candidate result JSON path."),
+    allow_mixed: bool = typer.Option(False, "--allow-mixed", help=_ALLOW_MIXED_HELP),
+    max_volume_ratio: float = typer.Option(
+        DEFAULT_MAX_VOLUME_RATIO, "--max-volume-ratio", min=1.0, help=_VOLUME_RATIO_HELP
+    ),
 ) -> None:
     """Compare two benchmark or evaluation result files metric-by-metric."""
     if not baseline.exists() or not candidate.exists():
         _console.print("[red]Both --baseline and --candidate files must exist.[/red]")
         raise typer.Exit(code=1)
 
-    comparison = compare_results(_load_metrics(baseline), _load_metrics(candidate))
+    base_data, cand_data = _load_result(baseline), _load_result(candidate)
+    issues = check_comparability(
+        [("baseline", _meta_or_none(base_data)), ("candidate", _meta_or_none(cand_data))],
+        max_volume_ratio=max_volume_ratio,
+    )
+    _print_issues(issues, allow_mixed=allow_mixed)
+    _abort_if_mixed(issues, allow_mixed=allow_mixed)
 
-    table = Table(title="Baseline vs candidate")
+    comparison = compare_results(_numeric_metrics(base_data), _numeric_metrics(cand_data))
+
+    title = "Baseline vs candidate" + (" (MIXED)" if has_blocking(issues) else "")
+    table = Table(title=title)
     table.add_column("Metric", style="cyan")
     table.add_column("Baseline", justify="right")
     table.add_column("Candidate", justify="right")
@@ -66,10 +146,8 @@ def _parse_run(spec: str) -> tuple[str, str | None, str | None]:
     return label.strip(), bench, evaluation
 
 
-def _runs_from_config(config: Path):
+def _runs_from_config(config: Path) -> list[ScorecardRun]:
     """Load scorecard runs from a YAML config, resolving paths relative to it."""
-    from reporting import ScorecardRun
-
     cfg = load_scorecard_config(config)
     base = config.resolve().parent
 
@@ -112,6 +190,46 @@ def _delta_cell(row: ScorecardRow) -> str:
     return f"[{style}]{arrow} {row.delta:+,.2f}[/{style}]"
 
 
+def _add_provenance_rows(table: Table, runs: tuple[ScorecardRun, ...]) -> None:
+    """Show how each column was produced, above the metrics it qualifies."""
+    metas = [run.meta for run in runs]
+    if not any(metas):
+        return
+
+    def cells(render) -> list[str]:
+        return [render(m) if m else "—" for m in metas]
+
+    trailing = [""] if len(runs) > 1 else []
+    table.add_row("[bold]Provenance[/bold]", *([""] * len(runs)), *trailing)
+    table.add_row(
+        "  Mode / backend",
+        *cells(lambda m: f"{m.execution_mode} / {m.execution_backend}"),
+        *trailing,
+    )
+    table.add_row(
+        "  Transcripts",
+        *cells(lambda m: f"{m.transcripts:,}" if m.transcripts else "?"),
+        *trailing,
+    )
+    table.add_row("  429 / timing source", *cells(lambda m: m.throttling_source or "?"), *trailing)
+    table.add_row(
+        "  Cost extrapolated",
+        *cells(lambda m: "yes" if m.cost_extrapolated else "no"),
+        *trailing,
+    )
+    table.add_row(
+        "  Deployments",
+        *cells(
+            lambda m: (
+                ", ".join(sorted(set(m.model_deployments.values())))
+                if m.model_deployments
+                else "unrecorded"
+            )
+        ),
+        *trailing,
+    )
+
+
 @app.command("scorecard")
 def scorecard(
     runs: list[str] = typer.Option(
@@ -130,6 +248,10 @@ def scorecard(
     output: Path | None = typer.Option(
         None, "--output", help="Optional JSON path to write the combined scorecard."
     ),
+    allow_mixed: bool = typer.Option(False, "--allow-mixed", help=_ALLOW_MIXED_HELP),
+    max_volume_ratio: float = typer.Option(
+        DEFAULT_MAX_VOLUME_RATIO, "--max-volume-ratio", min=1.0, help=_VOLUME_RATIO_HELP
+    ),
 ) -> None:
     """Combined operations + cost + quality scorecard across runs, side by side."""
     if config is not None:
@@ -142,19 +264,25 @@ def scorecard(
     else:
         _console.print("[red]Provide either --config or at least one --run.[/red]")
         raise typer.Exit(code=1)
-    card = build_scorecard(scorecard_runs)
+    card = build_scorecard(scorecard_runs, max_volume_ratio=max_volume_ratio)
+    issues = list(card.issues)
+    benchmark_labels = [run.label for run in card.runs if run.meta is not None]
+    _print_issues(issues, allow_mixed=allow_mixed, run_labels=benchmark_labels)
+    _abort_if_mixed(issues, allow_mixed=allow_mixed)
 
     if not card.rows:
         _console.print("[yellow]No comparable metrics found across the provided runs.[/yellow]")
         raise typer.Exit(code=1)
 
-    table = Table(title="Ops + Cost + Quality scorecard", show_lines=False)
+    title = "Ops + Cost + Quality scorecard" + (" — MIXED COMPARISON" if card.is_mixed else "")
+    table = Table(title=title, show_lines=False)
     table.add_column("Metric", style="cyan", no_wrap=True)
     for run in card.runs:
         table.add_column(run.label, justify="right")
     if len(card.runs) > 1:
         table.add_column("Δ vs baseline", justify="right")
 
+    _add_provenance_rows(table, card.runs)
     for category in ("Operations", "Cost", "Quality"):
         rows = card.rows_for(category)
         if not rows:
@@ -173,6 +301,9 @@ def scorecard(
     if output is not None:
         payload = {
             "runs": [run.label for run in card.runs],
+            "mixed": card.is_mixed,
+            "provenance": [run.meta.to_dict() if run.meta else None for run in card.runs],
+            "comparability_issues": [issue.to_dict() for issue in card.issues],
             "rows": [
                 {
                     "metric": row.spec.key,

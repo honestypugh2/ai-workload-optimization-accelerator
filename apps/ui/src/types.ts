@@ -23,17 +23,40 @@ export interface BenchmarkMetrics {
   deployment_utilization: Record<string, number>;
   workload_queue_depth: number;
   batch_completion_seconds: number;
+  // schema_version >= 2. "modeled" = quota simulation; "observed" = live 429s / wall clock.
+  throttling_source?: "modeled" | "observed";
+  timing_source?: "modeled" | "observed";
+  observed_http_429_count?: number | null;
+  observed_wall_clock_seconds?: number | null;
+  daily_volume?: number | null;
+  cost_extrapolated?: boolean;
+  cost_extrapolation_factor?: number;
+}
+
+export interface RunProvenance {
+  generated_at: string;
+  git_commit?: string | null;
+  config_path?: string | null;
+  config_sha256: string;
+  config_overrides?: Record<string, unknown>;
+  config_execution_mode?: string | null;
+  model_deployments?: Record<string, string>;
+  endpoint_host?: string | null;
 }
 
 export interface BenchmarkResult {
+  schema_version?: number;
   name: string;
   scenario: string;
   strategy: string;
   routing: string;
   execution_mode: string;
+  execution_backend?: string;
   use_optimized_mapping: boolean;
   currency: string;
   metrics: BenchmarkMetrics;
+  provenance?: RunProvenance | null;
+  notes?: string[];
 }
 
 export interface ThresholdOutcome {
@@ -83,9 +106,29 @@ export interface ScorecardRow {
   improved: boolean | null;
 }
 
+export interface ScorecardRunMeta {
+  execution_mode: string | null;
+  execution_backend: string | null;
+  transcripts: number | null;
+  schema_version: number;
+  throttling_source: string | null;
+  cost_extrapolated: boolean | null;
+  model_deployments: Record<string, string>;
+}
+
+export interface ComparabilityIssue {
+  label: string;
+  check: string;
+  message: string;
+  blocking: boolean;
+}
+
 export interface Scorecard {
   runs: string[];
   rows: ScorecardRow[];
+  mixed?: boolean;
+  provenance?: (ScorecardRunMeta | null)[];
+  comparability_issues?: ComparabilityIssue[];
 }
 
 export function isScorecard(value: unknown): value is Scorecard {

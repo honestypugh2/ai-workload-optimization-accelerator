@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-import time
 from collections import defaultdict
 from dataclasses import dataclass, field
 from types import TracebackType
+
+from shared.timing import monotonic_seconds
 
 
 @dataclass
@@ -44,7 +45,7 @@ class Timer:
         self._start: float = 0.0
 
     def __enter__(self) -> Timer:
-        self._start = time.perf_counter()
+        self._start = monotonic_seconds()
         return self
 
     def __exit__(
@@ -53,4 +54,4 @@ class Timer:
         exc: BaseException | None,
         tb: TracebackType | None,
     ) -> None:
-        self.elapsed_ms = (time.perf_counter() - self._start) * 1000.0
+        self.elapsed_ms = (monotonic_seconds() - self._start) * 1000.0

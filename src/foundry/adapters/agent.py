@@ -16,13 +16,12 @@ optional ``foundry`` extra, so imports are guarded at call sites.
 
 from __future__ import annotations
 
-import time
-
 from foundry.adapters.azure_openai import _raise_translated
 from foundry.projects import FoundryProjectSettings
 from shared.configuration import ModelDefinition
 from shared.contracts import ModelProvider, TokenCounter
 from shared.exceptions import ProviderError
+from shared.timing import monotonic_seconds
 from shared.types import ModelRequest, ModelResponse, TokenUsage
 
 # Default agent persona when FOUNDRY_AGENT_INSTRUCTIONS is not supplied.
@@ -79,9 +78,10 @@ class FoundryAgentProvider:
 
     def complete(self, request: ModelRequest) -> ModelResponse:  # pragma: no cover
         # Live agent path. Exercised only against a real Foundry project.
-        start = time.perf_counter()
+        start = monotonic_seconds()
         try:
-            openai_client = self._client.get_openai_client()  # type: ignore[attr-defined]
+            client = self._client.get_openai_client()  # type: ignore[attr-defined]
+            openai_client = client.with_options(max_retries=0)
             result = openai_client.responses.create(
                 model=self._settings.model_name or self._deployment,
                 instructions=request.system_prompt or self._instructions,
@@ -95,7 +95,7 @@ class FoundryAgentProvider:
             )
         except Exception as exc:
             _raise_translated(exc)
-        latency = (time.perf_counter() - start) * 1000.0
+        latency = (monotonic_seconds() - start) * 1000.0
         return ModelResponse(
             content=content,
             usage=usage,

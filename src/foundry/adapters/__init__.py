@@ -5,6 +5,21 @@ selects a provider based on the requested execution mode, importing the Azure
 adapter lazily so that ``azure-ai-projects`` remains an optional dependency.
 """
 
-from foundry.adapters.mock import MockModelProvider, build_provider, resolve_execution_backend
+from foundry.adapters._retry import RetryingProvider, RetryStats
+from foundry.adapters.mock import (
+    MockModelProvider,
+    build_provider,
+    resolve_endpoint_host,
+    resolve_execution_backend,
+    resolve_model_deployments,
+)
 
-__all__ = ["MockModelProvider", "build_provider", "resolve_execution_backend"]
+__all__ = [
+    "MockModelProvider",
+    "RetryStats",
+    "RetryingProvider",
+    "build_provider",
+    "resolve_endpoint_host",
+    "resolve_execution_backend",
+    "resolve_model_deployments",
+]

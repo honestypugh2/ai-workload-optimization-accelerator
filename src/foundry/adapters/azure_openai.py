@@ -11,14 +11,15 @@ It depends on the optional ``foundry`` extra (``azure-ai-projects``,
 
 from __future__ import annotations
 
-import time
 from typing import NoReturn
 
 from foundry.adapters._messages import build_chat_messages
+from foundry.adapters._retry import is_retryable_server_error
 from foundry.projects import FoundryProjectSettings
 from shared.configuration import ModelDefinition
 from shared.contracts import ModelProvider, TokenCounter
 from shared.exceptions import ProviderError, ThrottlingError, TransientProviderError
+from shared.timing import monotonic_seconds
 from shared.types import ModelRequest, ModelResponse, TokenUsage
 
 
@@ -52,7 +53,10 @@ class FoundryModelProvider:
         # Cache the authenticated OpenAI client so the credential's token cache
         # is reused instead of shelling out to the Azure CLI on every request.
         if self._openai_client is None:
-            self._openai_client = self._client.get_openai_client()  # type: ignore[attr-defined]
+            # SDK retries are disabled so RetryingProvider sees, counts, and retries
+            # every 429/5xx itself; otherwise observed throttling is undercounted.
+            client = self._client.get_openai_client()  # type: ignore[attr-defined]
+            self._openai_client = client.with_options(max_retries=0)
         return self._openai_client
 
     @staticmethod
@@ -94,7 +98,7 @@ class FoundryModelProvider:
 
     def complete(self, request: ModelRequest) -> ModelResponse:  # pragma: no cover
         # Real invocation path. Exercised only against a live Foundry project.
-        start = time.perf_counter()
+        start = monotonic_seconds()
         try:
             # azure-ai-projects 2.x exposes an authenticated openai client rather
             # than the removed 1.x ``.inference`` namespace.
@@ -111,7 +115,7 @@ class FoundryModelProvider:
             )
         except Exception as exc:
             _raise_translated(exc)
-        latency = (time.perf_counter() - start) * 1000.0
+        latency = (monotonic_seconds() - start) * 1000.0
         return ModelResponse(
             content=content,
             usage=usage,
@@ -128,6 +132,8 @@ def _raise_translated(exc: Exception) -> NoReturn:  # pragma: no cover - live ca
         raise ThrottlingError(str(exc), retry_after_seconds=retry_after) from exc
     if _is_transient_credential_error(exc):
         raise TransientProviderError(f"Transient credential failure: {exc}") from exc
+    if is_retryable_server_error(exc):
+        raise TransientProviderError(f"Transient Foundry failure: {exc}") from exc
     raise ProviderError(f"Foundry completion failed: {exc}") from exc
 
 

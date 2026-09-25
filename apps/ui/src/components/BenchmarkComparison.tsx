@@ -38,6 +38,44 @@ function metricValue(r: BenchmarkResult, key: string): number {
   return (r.metrics as unknown as Record<string, number>)[key] ?? Number.NaN;
 }
 
+// Mirrors reporting/comparability.py so the viewer warns about the same
+// like-for-unlike comparisons the CLI refuses.
+const MAX_VOLUME_RATIO = 2;
+
+function throttlingSource(r: BenchmarkResult): string {
+  return r.metrics.throttling_source ?? "modeled";
+}
+
+function mixedReasons(results: BenchmarkResult[]): string[] {
+  const [base, ...rest] = results;
+  const reasons: string[] = [];
+  for (const r of rest) {
+    if (r.execution_mode !== base.execution_mode) {
+      reasons.push(`${r.name}: mode ${r.execution_mode} vs baseline ${base.execution_mode}`);
+    }
+    if ((r.execution_backend ?? "unknown") !== (base.execution_backend ?? "unknown")) {
+      reasons.push(`${r.name}: backend ${r.execution_backend} vs ${base.execution_backend}`);
+    }
+    if (throttlingSource(r) !== throttlingSource(base)) {
+      reasons.push(`${r.name}: 429s ${throttlingSource(r)} vs ${throttlingSource(base)}`);
+    }
+    const a = base.metrics.transcripts;
+    const b = r.metrics.transcripts;
+    if (a > 0 && b > 0 && Math.max(a, b) / Math.min(a, b) > MAX_VOLUME_RATIO) {
+      reasons.push(`${r.name}: ${b.toLocaleString()} transcripts vs ${a.toLocaleString()}`);
+    }
+  }
+  return reasons;
+}
+
+function provenanceLine(r: BenchmarkResult): string {
+  const backend = r.execution_backend ?? "?";
+  const volume = r.metrics.transcripts.toLocaleString();
+  const source = r.schema_version && r.schema_version >= 2 ? throttlingSource(r) : "legacy";
+  const extrapolated = r.metrics.cost_extrapolated ? " · cost extrapolated" : "";
+  return `${r.execution_mode}/${backend} · ${volume} tx · 429s ${source}${extrapolated}`;
+}
+
 export function BenchmarkComparison({ results }: BenchmarkComparisonProps) {
   if (results.length === 0) {
     return (
@@ -50,20 +88,32 @@ export function BenchmarkComparison({ results }: BenchmarkComparisonProps) {
 
   const baseline = results[0];
   const showDelta = results.length >= 2;
+  const reasons = mixedReasons(results);
 
   return (
     <section>
       <h2>Benchmark comparison</h2>
+      {reasons.length > 0 && (
+        <div className="warning">
+          <strong>Mixed comparison — these runs are not like-for-like.</strong>
+          <ul>
+            {reasons.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       <table>
         <thead>
           <tr>
             <th>Metric</th>
-            {results.map((r) => (
-              <th className="num" key={r.name}>
+            {results.map((r, i) => (
+              <th className="num" key={`${r.name}-${i}`}>
                 {r.name}
                 <div className="subtitle">
                   {r.strategy} / {r.routing}
                 </div>
+                <div className="subtitle">{provenanceLine(r)}</div>
               </th>
             ))}
             {showDelta && <th className="num">Δ vs first</th>}
@@ -78,8 +128,8 @@ export function BenchmarkComparison({ results }: BenchmarkComparisonProps) {
             return (
               <tr key={row.key}>
                 <td>{row.label}</td>
-                {results.map((r) => (
-                  <td className="num" key={r.name}>
+                {results.map((r, i) => (
+                  <td className="num" key={`${r.name}-${i}`}>
                     {row.format(metricValue(r, row.key))}
                   </td>
                 ))}

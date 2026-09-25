@@ -12,14 +12,15 @@ Imported lazily and only in AZURE mode; depends on the optional ``foundry`` extr
 
 from __future__ import annotations
 
-import time
 from typing import NoReturn
 
 from foundry.adapters._messages import build_chat_messages
+from foundry.adapters._retry import is_retryable_server_error
 from foundry.projects import GatewaySettings
 from shared.configuration import ModelDefinition
 from shared.contracts import ModelProvider, TokenCounter
-from shared.exceptions import ProviderError, ThrottlingError
+from shared.exceptions import ProviderError, ThrottlingError, TransientProviderError
+from shared.timing import monotonic_seconds
 from shared.types import ModelRequest, ModelResponse, TokenUsage
 
 # AAD scope for Azure OpenAI / APIM when using managed identity instead of a key.
@@ -73,10 +74,12 @@ class OpenAICompatibleProvider:
             base_url=settings.base_url,
             api_key=api_key or "unused",
             default_headers=default_headers or None,
+            # RetryingProvider owns retries so every 429/5xx is observed and counted.
+            max_retries=0,
         )
 
     def complete(self, request: ModelRequest) -> ModelResponse:  # pragma: no cover - live call
-        start = time.perf_counter()
+        start = monotonic_seconds()
         try:
             client = self._client
             result = client.chat.completions.create(  # type: ignore[attr-defined]
@@ -91,7 +94,7 @@ class OpenAICompatibleProvider:
             )
         except Exception as exc:
             _raise_translated(exc)
-        latency = (time.perf_counter() - start) * 1000.0
+        latency = (monotonic_seconds() - start) * 1000.0
         return ModelResponse(
             content=content,
             usage=usage,
@@ -117,6 +120,8 @@ def _raise_translated(exc: Exception) -> NoReturn:  # pragma: no cover - live ca
     retry_after = _retry_after_from(exc)
     if status == 429 or exc.__class__.__name__ == "RateLimitError":
         raise ThrottlingError(str(exc), retry_after_seconds=retry_after) from exc
+    if is_retryable_server_error(exc):
+        raise TransientProviderError(f"Transient gateway failure: {exc}") from exc
     raise ProviderError(f"Gateway completion failed: {exc}") from exc
 
 

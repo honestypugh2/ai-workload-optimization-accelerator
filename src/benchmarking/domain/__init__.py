@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
-from benchmarking.domain.models import BenchmarkMetrics, BenchmarkResult
+from benchmarking.domain.models import (
+    RESULT_SCHEMA_VERSION,
+    BenchmarkMetrics,
+    BenchmarkResult,
+    RunProvenance,
+)
 
-__all__ = ["BenchmarkMetrics", "BenchmarkResult"]
+__all__ = ["RESULT_SCHEMA_VERSION", "BenchmarkMetrics", "BenchmarkResult", "RunProvenance"]

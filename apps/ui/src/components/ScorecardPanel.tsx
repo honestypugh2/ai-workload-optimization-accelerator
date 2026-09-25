@@ -42,19 +42,58 @@ export function ScorecardPanel({ scorecard }: ScorecardPanelProps) {
 
   const { runs, rows } = scorecard;
   const showDelta = runs.length >= 2;
+  const issues = scorecard.comparability_issues ?? [];
+  const blocking = issues.filter((i) => i.blocking);
+  const caveats = issues.filter((i) => !i.blocking);
+  const provenance = scorecard.provenance ?? [];
 
   return (
     <section>
       <h2>Combined ops + cost + quality scorecard</h2>
+      {(scorecard.mixed || blocking.length > 0) && (
+        <div className="warning">
+          <strong>Mixed comparison — rendered with --allow-mixed.</strong>
+          <ul>
+            {blocking.map((i) => (
+              <li key={`${i.label}-${i.check}`}>
+                {i.label}: {i.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {caveats.length > 0 && (
+        <div className="caveat">
+          <strong>Caveats</strong>
+          <ul>
+            {caveats.map((i) => (
+              <li key={`${i.label}-${i.check}`}>
+                {i.label}: {i.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <table>
         <thead>
           <tr>
             <th>Metric</th>
-            {runs.map((run) => (
-              <th className="num" key={run}>
-                {run}
-              </th>
-            ))}
+            {runs.map((run, i) => {
+              const meta = provenance[i];
+              return (
+                <th className="num" key={`${run}-${i}`}>
+                  {run}
+                  {meta && (
+                    <div className="subtitle">
+                      {meta.execution_mode}/{meta.execution_backend} ·{" "}
+                      {meta.transcripts?.toLocaleString() ?? "?"} tx · 429s{" "}
+                      {meta.schema_version >= 2 ? meta.throttling_source : "legacy"}
+                      {meta.cost_extrapolated ? " · cost extrapolated" : ""}
+                    </div>
+                  )}
+                </th>
+              );
+            })}
             {showDelta && <th className="num">Δ vs baseline</th>}
           </tr>
         </thead>

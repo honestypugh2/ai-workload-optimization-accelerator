@@ -24,8 +24,10 @@ if [[ "${1:-}" == "--full" ]]; then
   FULL=1
 fi
 
+# Every run uses the same transcript count so the scorecard columns are
+# like-for-like (the lever configs default to smaller smoke volumes).
 if [[ "$FULL" -eq 1 ]]; then
-  TX_ARG=()            # use each config's own transcript_count (7,000)
+  TX_ARG=(--transcripts 7000)
   echo "==> FULL run: reproducing the 7,000-transcript daily batch (this takes a few minutes)"
 else
   TX_ARG=(--transcripts 200)
@@ -37,7 +39,8 @@ bench() {
   uv run aiwoa benchmark run \
     --scenario "$SCENARIO" \
     --config "${BENCH_DIR}/$1.yaml" \
-    --output "${REPORTS}/$1.result.json" \
+    --mode local \
+    --output "${REPORTS}/$1.local.result.json" \
     "${TX_ARG[@]}"
 }
 
@@ -83,10 +86,10 @@ echo "############################################################"
 echo "# 5. Combined ops + cost + quality scorecard               #"
 echo "############################################################"
 uv run aiwoa report scorecard \
-  --run "Current state=${REPORTS}/current-state-batch.result.json::${REPORTS}/member-id-baseline.eval.json" \
-  --run "Token reduction=${REPORTS}/token-optimization.result.json" \
-  --run "Multi-deployment=${REPORTS}/routing-comparison.result.json" \
-  --run "Optimized target=${REPORTS}/optimized-target.result.json::${REPORTS}/member-id.eval.json" \
+  --run "Current state=${REPORTS}/current-state-batch.local.result.json::${REPORTS}/member-id-baseline.eval.json" \
+  --run "Token reduction=${REPORTS}/token-optimization.local.result.json" \
+  --run "Multi-deployment=${REPORTS}/routing-comparison.local.result.json" \
+  --run "Optimized target=${REPORTS}/optimized-target.local.result.json::${REPORTS}/member-id.eval.json" \
   --output "${REPORTS}/scorecard.json"
 
 echo

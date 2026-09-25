@@ -132,3 +132,41 @@ def resolve_execution_backend(mode: ExecutionMode = ExecutionMode.LOCAL) -> str:
     if FoundryProjectSettings.from_env().use_agent:
         return "agent"
     return "direct"
+
+
+def resolve_model_deployments(
+    aliases: dict[str, ModelDefinition],
+    mode: ExecutionMode = ExecutionMode.LOCAL,
+) -> dict[str, str]:
+    """Return ``{catalog_alias: deployment_actually_called}`` for provenance.
+
+    Mirrors how each live adapter picks its target so a result shows, for
+    example, that every alias hit one ``FOUNDRY_MODEL_NAME`` deployment in
+    ``direct`` mode even when the config routes tasks to several tiers.
+    """
+    if mode is not ExecutionMode.AZURE:
+        return {alias: f"mock:{alias}" for alias in sorted(aliases)}
+    from foundry.projects import FoundryProjectSettings, GatewaySettings
+
+    gateway = GatewaySettings.from_env()
+    if gateway.is_gateway:
+        return {alias: gateway.model_for(model.name) for alias, model in sorted(aliases.items())}
+    model_name = FoundryProjectSettings.from_env().model_name
+    return {alias: model_name or alias for alias in sorted(aliases)}
+
+
+def resolve_endpoint_host(mode: ExecutionMode = ExecutionMode.LOCAL) -> str | None:
+    """Return only the hostname of the live endpoint (never paths, keys, or tokens)."""
+    if mode is not ExecutionMode.AZURE:
+        return None
+    from urllib.parse import urlparse
+
+    from foundry.projects import FoundryProjectSettings, GatewaySettings
+
+    gateway = GatewaySettings.from_env()
+    url = (
+        gateway.base_url
+        if gateway.is_gateway
+        else FoundryProjectSettings.from_env().project_endpoint
+    )
+    return urlparse(url).hostname if url else None

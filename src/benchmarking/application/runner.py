@@ -4,18 +4,22 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from typing import Any
 
 from benchmarking.domain import BenchmarkMetrics, BenchmarkResult
+from benchmarking.domain.models import MetricSource
 from benchmarking.infrastructure import (
     assemble_router,
     build_providers,
     build_quota_model,
+    collect_provenance,
     resolve_scenario_deployment_profile,
+    task_alias_map,
 )
-from foundry.adapters import resolve_execution_backend
+from foundry.adapters import RetryingProvider, RetryStats, resolve_execution_backend
 from foundry.model_catalog import ApproxTokenCounter
 from observability import get_logger
 from observability.metrics import MetricSink
@@ -29,6 +33,7 @@ from shared.configuration import (
     ScenarioConfig,
     load_pricing_config,
 )
+from shared.timing import monotonic_seconds
 from shared.types import ExecutionMode, Transcript
 from workloads.base import WorkloadScenario
 
@@ -74,7 +79,21 @@ def _execution_mode(value: str) -> ExecutionMode:
 class BenchmarkRunner:
     """Runs a benchmark configuration end to end and returns a result."""
 
-    def run(self, config: BenchmarkConfig) -> BenchmarkResult:
+    def run(
+        self,
+        config: BenchmarkConfig,
+        *,
+        config_path: str | Path | None = None,
+        overrides: dict[str, Any] | None = None,
+        config_execution_mode: str | None = None,
+    ) -> BenchmarkResult:
+        """Run ``config`` and return a result with full provenance.
+
+        ``config_path``, ``overrides`` and ``config_execution_mode`` describe
+        where the config came from and what the caller changed (e.g. CLI
+        ``--mode``), so the result records the file's intent alongside what
+        actually ran.
+        """
         scenario_cls = scenario_registry.get(config.scenario)
         scenario = scenario_cls()
         scenario_config = scenario.load_config()
@@ -112,10 +131,35 @@ class BenchmarkRunner:
             config.max_concurrency,
         )
 
-        outcomes = self._process_dataset(strategy, dataset, ctx, config.max_concurrency)
+        outcomes, wall_clock_seconds = self._timed_process(
+            strategy, dataset, ctx, config.max_concurrency
+        )
+        observed = self._observed_stats(providers)
         pricing = self._load_pricing(scenario, config)
         metrics = self._aggregate(
-            outcomes, quota, profile, scenario_config, pricing, caches, config.max_concurrency
+            outcomes,
+            quota,
+            profile,
+            scenario_config,
+            pricing,
+            caches,
+            config.max_concurrency,
+            observed=observed,
+            wall_clock_seconds=wall_clock_seconds,
+        )
+        models = {
+            alias: scenario_config.model_catalog.get(alias)
+            for alias in set(task_alias_map(mapping).values())
+        }
+        provenance = collect_provenance(
+            config=config,
+            mode=mode,
+            scenario_root=scenario.root,
+            models=models,
+            profile=profile,
+            config_path=config_path,
+            overrides=overrides,
+            config_execution_mode=config_execution_mode,
         )
 
         return BenchmarkResult(
@@ -128,8 +172,27 @@ class BenchmarkRunner:
             use_optimized_mapping=config.use_optimized_mapping,
             currency=pricing.currency,
             metrics=metrics,
-            notes=self._notes(config, mode),
+            provenance=provenance,
+            notes=self._notes(config, mode, metrics, provenance.model_deployments),
         )
+
+    @classmethod
+    def _timed_process(
+        cls,
+        strategy: OptimizationStrategy,
+        dataset: Sequence[Transcript],
+        ctx: StrategyContext,
+        max_concurrency: int,
+    ) -> tuple[list[TranscriptOutcome], float]:
+        started = monotonic_seconds()
+        outcomes = cls._process_dataset(strategy, dataset, ctx, max_concurrency)
+        return outcomes, monotonic_seconds() - started
+
+    @staticmethod
+    def _observed_stats(providers: Mapping[str, object]) -> RetryStats | None:
+        """Aggregate real call outcomes; ``None`` when no live provider was used."""
+        live = [p.stats for p in providers.values() if isinstance(p, RetryingProvider)]
+        return RetryStats.combine(live) if live else None
 
     @staticmethod
     def _process_dataset(
@@ -162,10 +225,39 @@ class BenchmarkRunner:
         return load_pricing_config(path)
 
     @staticmethod
-    def _notes(config: BenchmarkConfig, mode: ExecutionMode) -> list[str]:
+    def _notes(
+        config: BenchmarkConfig,
+        mode: ExecutionMode,
+        metrics: BenchmarkMetrics,
+        model_deployments: dict[str, str],
+    ) -> list[str]:
         notes = []
         if mode is ExecutionMode.LOCAL:
             notes.append("Local synthetic run: no Azure calls, mock provider used.")
+        if metrics.throttling_source == "modeled":
+            notes.append(
+                "HTTP 429, retries, and batch time are MODELED from the TPM quota simulation."
+            )
+        else:
+            notes.append(
+                "HTTP 429, retries, and batch time are OBSERVED from live calls and wall clock."
+            )
+        if metrics.cost_extrapolated:
+            notes.append(
+                f"Cost/day and cost/month are extrapolated "
+                f"x{metrics.cost_extrapolation_factor:,.1f} from {metrics.transcripts} "
+                f"transcripts to a {metrics.daily_volume:,}-transcript day."
+            )
+        distinct_targets = set(model_deployments.values())
+        if (
+            mode is ExecutionMode.AZURE
+            and len(model_deployments) > 1
+            and len(distinct_targets) == 1
+        ):
+            notes.append(
+                f"All model aliases ({', '.join(sorted(model_deployments))}) were served by one "
+                f"deployment '{next(iter(distinct_targets))}'; tiered routing was not exercised."
+            )
         if config.caching:
             notes.append(f"Caching enabled: {', '.join(config.caching)}.")
         if config.chunking:
@@ -181,6 +273,9 @@ class BenchmarkRunner:
         pricing: PricingConfig,
         caches: CacheBundle,
         max_concurrency: int,
+        *,
+        observed: RetryStats | None = None,
+        wall_clock_seconds: float | None = None,
     ) -> BenchmarkMetrics:
         sink = MetricSink()
         total_input = 0
@@ -215,29 +310,52 @@ class BenchmarkRunner:
                 total_output += call.output_tokens
                 total_cost += self._call_cost(call, pricing)
 
+        live = observed if wall_clock_seconds is not None else None
+        live_seconds = wall_clock_seconds if live is not None else None
+        is_observed = live is not None
+        modeled_latencies: list[float] = []
         for outcome in outcomes:
             latency = sum(c.latency_ms for c in outcome.calls)
-            latency += extra_latency.get(outcome.transcript_id, 0.0)
-            sink.observe("latency", latency)
+            modeled_latencies.append(latency + extra_latency.get(outcome.transcript_id, 0.0))
+            # Live latencies are real; the simulated backoff penalty only applies to
+            # modeled runs (real backoff shows up in the observed wall clock instead).
+            sink.observe("latency", latency if is_observed else modeled_latencies[-1])
 
         transcripts = len(outcomes) or 1
         total_tokens = total_input + total_output
-        # Wall-clock is bounded by the slower of two floors: the rate-limit floor
-        # (tokens pushed through the TPM ceiling, concurrency-independent) and the
-        # compute floor (aggregate call latency shared across parallel workers).
+        # Modeled wall-clock is bounded by the slower of two floors: the rate-limit
+        # floor (tokens pushed through the TPM ceiling, concurrency-independent) and
+        # the compute floor (aggregate call latency shared across parallel workers).
         workers = max(1, min(max_concurrency, transcripts))
         rate_limit_seconds = minutes * 60.0
-        compute_seconds = sum(sink.samples.get("latency", [])) / 1000.0
-        batch_seconds = max(rate_limit_seconds, compute_seconds / workers)
+        compute_seconds = sum(modeled_latencies) / 1000.0
+        modeled_batch_seconds = max(rate_limit_seconds, compute_seconds / workers)
+        modeled_429_rate = round(throttled / total_calls, 4) if total_calls else 0.0
+
+        if live is not None and live_seconds is not None:
+            batch_seconds = live_seconds
+            http_429_rate = round(live.http_429_rate, 4)
+            retry_count = live.retries
+            error_count = live.failures
+            queue_depth = live.throttles
+        else:
+            batch_seconds = modeled_batch_seconds
+            http_429_rate = modeled_429_rate
+            retry_count = retries
+            error_count = 0
+            queue_depth = throttled
         batch_minutes = batch_seconds / 60.0 or 1.0
+        utilization_minutes = batch_minutes if is_observed else minutes
 
         utilization = {
-            name: round(min(1.0, consumed[name] / (state.tpm_limit * minutes)), 4)
+            name: round(min(1.0, consumed[name] / (state.tpm_limit * utilization_minutes)), 4)
             for name, state in quota.states.items()
         }
 
         cost_per_transcript = total_cost / transcripts
         daily_volume = scenario_config.dataset_profile.target_daily_volume
+        extrapolation = daily_volume / transcripts
+        source: MetricSource = "observed" if is_observed else "modeled"
 
         return BenchmarkMetrics(
             transcripts=transcripts,
@@ -254,13 +372,28 @@ class BenchmarkRunner:
             cost_per_1k_transcripts=round(cost_per_transcript * 1000, 4),
             cost_per_day=round(cost_per_transcript * daily_volume, 2),
             cost_per_month=round(cost_per_transcript * daily_volume * 30, 2),
-            http_429_rate=round(throttled / total_calls, 4) if total_calls else 0.0,
-            retry_count=retries,
-            error_count=0,
+            http_429_rate=http_429_rate,
+            retry_count=retry_count,
+            error_count=error_count,
             cache_hit_rate=round(caches.combined_hit_rate, 4),
             deployment_utilization=utilization,
-            workload_queue_depth=throttled,
+            workload_queue_depth=queue_depth,
             batch_completion_seconds=round(batch_seconds, 2),
+            throttling_source=source,
+            timing_source=source,
+            modeled_http_429_rate=modeled_429_rate,
+            modeled_retry_count=retries,
+            modeled_batch_completion_seconds=round(modeled_batch_seconds, 2),
+            observed_attempts=live.attempts if live else None,
+            observed_http_429_count=live.throttles if live else None,
+            observed_http_429_rate=http_429_rate if live else None,
+            observed_retry_count=live.retries if live else None,
+            observed_transient_error_count=live.transient_errors if live else None,
+            observed_backoff_seconds=round(live.backoff_seconds, 3) if live else None,
+            observed_wall_clock_seconds=round(live_seconds, 2) if live_seconds else None,
+            daily_volume=daily_volume,
+            cost_extrapolated=transcripts != daily_volume,
+            cost_extrapolation_factor=round(extrapolation, 4),
         )
 
     @staticmethod
