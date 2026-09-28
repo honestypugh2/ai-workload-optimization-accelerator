@@ -177,3 +177,6 @@ docs/decisions
 
 test_venv/
 *.drawio
+
+docs/*_checklist.md
+*.pdf
