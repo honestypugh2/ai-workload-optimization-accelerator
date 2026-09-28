@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import pytest
@@ -84,3 +85,13 @@ def test_concurrency_reduces_latency_bound_batch_time() -> None:
     # Order-invariant metrics stay identical regardless of worker count.
     assert concurrent.metrics.total_input_tokens == sequential.metrics.total_input_tokens
     assert concurrent.metrics.estimated_cost == sequential.metrics.estimated_cost
+
+
+def test_benchmark_emits_tracing_spans_and_timing(caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level(logging.DEBUG):
+        run_benchmark_file(BENCHMARKS / "baseline-batch.yaml")
+    messages = [r.getMessage() for r in caplog.records]
+    assert any("span.start name=benchmark.run" in m for m in messages)
+    assert any("span.start name=benchmark.process" in m for m in messages)
+    assert any("span.end name=benchmark.run" in m for m in messages)
+    assert any("Benchmark 'baseline-batch' finished in" in m for m in messages)

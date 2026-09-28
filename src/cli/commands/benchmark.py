@@ -13,6 +13,7 @@ from benchmarking.api import run_benchmark
 from shared.configuration import load_benchmark_config
 from shared.exceptions import AcceleratorError
 from shared.types import ExecutionMode
+from storage import FilesystemResultStore
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 _console = Console()
@@ -123,8 +124,7 @@ def run(
         )
 
     out_path = output or _default_output(result.scenario, result.name, result.execution_mode)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(result.model_dump_json(indent=2), encoding="utf-8")
+    FilesystemResultStore(out_path.parent).save(out_path.name, result.model_dump(mode="json"))
 
     _print_summary(result)
     _console.print(f"[dim]Result written to {out_path}[/dim]")

@@ -62,11 +62,11 @@ local variants are the modeled twins used for fast, offline projections.
 | `option-a-azure` | full transcript · quota-aware | 4 · 800K | Spread load across deployments (cheapest lever) |
 | `option-b-azure` | deterministic-first · task-based + cache + chunking | 4 · 1M | **Recommended**: cheapest capable model per task |
 | `option-c-azure` | full transcript · PTU burst | PTU 50 | Reserved throughput for predictable latency |
-| `foundry-current-config-azure` | full transcript · single deployment | 1 · 24.438M | The reference's *actual* Foundry deployment today |
+| `foundry-current-config-azure` | full transcript · single deployment | 1 · 25M | A single high-quota Global Standard deployment |
 
-`foundry-current-config-azure` matches what the reference sees in the portal
-(Global Standard, 24,438,000 TPM / RPM 24,438, DefaultV2 filter), so its numbers
-line up with their live environment.
+`foundry-current-config-azure` models one high-quota deployment (Global Standard,
+illustrative 25,000,000 TPM / RPM 25,000, DefaultV2 filter), so the comparison can
+start from a production-scale quota rather than the throttled 250K baseline.
 
 ---
 
@@ -251,7 +251,7 @@ with the Step 5 commands before quoting them:
 
 - **The bottleneck is quota, not the model.** The current single 250K-TPM
   deployment throttles (2 % of calls hit 429) and stretches the daily batch to
-  **~12 hours** — the root cause of the reference's ~2-day insight lag.
+  **~12 hours** — the root cause of a multi-day insight lag.
 - **The cheapest lever is spreading load.** Option A (quota-aware across 4
   deployments) alone cuts the batch to **~2.3 h** *and lowers* monthly cost to
   **$412** — faster and cheaper, no model changes.
@@ -261,9 +261,10 @@ with the Step 5 commands before quoting them:
 - **PTU buys predictability, not top speed.** Option C's reserved throughput
   gives steady latency but the highest cost; justify it only when latency SLAs
   demand guaranteed capacity.
-- **Ground it in their reality.** `foundry-current-config` reproduces the
-  reference's actual 24.438M-TPM Global Standard deployment, so the comparison
-  starts from the environment they already see in the portal.
+- **Ground it in a production-scale quota.** `foundry-current-config` models a
+  single high-quota (25M TPM) Global Standard deployment, so the comparison also
+  covers the case where quota is plentiful and per-call latency × concurrency
+  becomes the constraint.
 
 Pair this with the **quality** story (member-id extraction ~30 % → ≥90 % target
 via the optimized prompts/evaluation) and the deliverable becomes: *"same

@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
+
+import pytest
 
 from evaluation.api import compare_results, run_evaluation_file
 
@@ -33,3 +36,13 @@ def test_compare_results_reports_positive_delta() -> None:
         {"member_id_recall": 0.93},
     )
     assert comparison["member_id_recall"]["delta"] > 0
+
+
+def test_evaluation_emits_tracing_spans_and_timing(caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level(logging.DEBUG):
+        run_evaluation_file(EVALS / "member-id.yaml")
+    messages = [r.getMessage() for r in caplog.records]
+    assert any("span.start name=evaluation.run" in m for m in messages)
+    assert any("span.start name=evaluation.evaluator" in m for m in messages)
+    assert any("span.end name=evaluation.run" in m for m in messages)
+    assert any("Evaluation 'member-id' finished in" in m for m in messages)

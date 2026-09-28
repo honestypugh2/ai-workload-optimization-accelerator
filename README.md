@@ -78,7 +78,9 @@ uv run aiwoa benchmark run --scenario post-call-analytics \
 uv run aiwoa evaluate run --scenario post-call-analytics \
   --config workload-scenarios/post-call-analytics/evaluations/member-id.yaml
 
-# 6. Compare two result files
+# 6. Run a candidate (multi-deployment routing) and compare it to the baseline
+uv run aiwoa benchmark run --scenario post-call-analytics \
+  --config workload-scenarios/post-call-analytics/benchmarks/routing-comparison.yaml
 uv run aiwoa report compare \
   --baseline workload-scenarios/post-call-analytics/reports/baseline-batch.local.result.json \
   --candidate workload-scenarios/post-call-analytics/reports/routing-comparison.local.result.json

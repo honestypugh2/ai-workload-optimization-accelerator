@@ -20,7 +20,7 @@ data.
 
 - ~7,000 transcripts/day, ~5,000 tokens average input
 - Current state: Microsoft Foundry + Azure OpenAI Nano-class, **single deployment
-  bottleneck**, shared TPM, batch processing, ~2-day insight lag, HTTP 429 under
+  bottleneck**, shared TPM, batch processing, multi-day insight lag, HTTP 429 under
   load with retry-with-backoff
 - Member-id extraction baseline ~30%, optimized target ≥90%
 

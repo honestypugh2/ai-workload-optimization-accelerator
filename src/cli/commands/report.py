@@ -22,6 +22,7 @@ from reporting import (
     load_run,
 )
 from shared.configuration import load_scorecard_config
+from storage import FilesystemResultStore
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 _console = Console()
@@ -318,6 +319,5 @@ def scorecard(
                 for row in card.rows
             ],
         }
-        output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        FilesystemResultStore(output.parent).save(output.name, payload)
         _console.print(f"[dim]Scorecard written to {output}[/dim]")

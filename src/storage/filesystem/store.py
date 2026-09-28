@@ -15,7 +15,9 @@ class FilesystemResultStore:
     def save(self, key: str, payload: dict) -> str:
         path = self._root / key
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
+        path.write_text(
+            json.dumps(payload, indent=2, default=str, ensure_ascii=False), encoding="utf-8"
+        )
         return str(path)
 
     def load(self, key: str) -> dict:

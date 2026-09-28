@@ -1,16 +1,16 @@
-# Option B optimizations layered on the reference's REAL Foundry quota (7,000/day).
+# Option B optimizations layered on a single high-quota deployment (7,000/day).
 #
 # Same task-based routing + deterministic pre-extraction + multi-tier caching as
-# option-b-azure.yaml, but pinned to the reference's actual deployment ceiling
-# (single Global Standard deployment, 24,438,000 TPM / RPM 24,438) instead of the
+# option-b-azure.yaml, but pinned to one high-quota deployment ceiling
+# (single Global Standard deployment, 25,000,000 TPM / RPM 25,000) instead of the
 # modeled 4x1M topology. Compare against foundry-current-config-azure.yaml (same
-# quota, unoptimized) to quantify what optimization alone buys on the quota they
-# already have. Concurrency matches foundry-current-config so only the strategy /
+# quota, unoptimized) to quantify what optimization alone buys on an existing
+# quota. Concurrency matches foundry-current-config so only the strategy /
 # routing / caching differ.
 #
 # Live run: same env as foundry-current-config-azure.yaml (direct inference).
 name: option-b-foundry-tpm-azure
-description: Option B (routing + caching) on the reference's real Foundry quota — single Global Standard, 24.438M TPM, 7,000/day.
+description: Option B (routing + caching) on a single high-quota deployment — Global Standard, 25M TPM, 7,000/day.
 scenario: post-call-analytics
 execution_mode: azure
 strategy: deterministic_first
@@ -27,8 +27,8 @@ transcript_count: 7000
 max_concurrency: 32
 deployment_overrides:
   deployment_count: 1
-  tokens_per_minute_limit: 24438000
-  requests_per_minute_limit: 24438
+  tokens_per_minute_limit: 25000000
+  requests_per_minute_limit: 25000
   shared_quota: true
   retry_with_backoff: true
   ptu_units: 0

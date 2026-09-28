@@ -8,6 +8,8 @@ from evaluation.domain import (
     apply_thresholds,
 )
 from observability import get_logger
+from observability.metrics import Timer
+from observability.tracing import span
 from registry.evaluator_registry import evaluator_registry
 from registry.scenario_registry import scenario_registry
 from shared.configuration import EvaluationConfig
@@ -37,11 +39,19 @@ class EvaluationRunner:
         )
 
         metrics: dict[str, float] = {}
-        for name in config.evaluators:
-            evaluator = evaluator_registry.get(name)()
-            metrics.update(evaluator.evaluate(ctx))
+        with span("evaluation.run", evaluation=config.name), Timer() as timer:
+            for name in config.evaluators:
+                with span("evaluation.evaluator", evaluator=name):
+                    evaluator = evaluator_registry.get(name)()
+                    metrics.update(evaluator.evaluate(ctx))
 
-        outcomes, gate_passed = apply_thresholds(metrics, config.thresholds)
+            outcomes, gate_passed = apply_thresholds(metrics, config.thresholds)
+        _logger.info(
+            "Evaluation '%s' finished in %.1f ms gate_passed=%s",
+            config.name,
+            timer.elapsed_ms,
+            gate_passed,
+        )
         return EvaluationResult(
             name=config.name,
             scenario=config.scenario,

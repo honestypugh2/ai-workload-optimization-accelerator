@@ -1,5 +1,5 @@
 # Near-real-time / event-driven simulation: small batches, quota-aware routing.
-# Models moving away from the ~2-day batch lag toward near-real-time processing.
+# Models moving away from a multi-day batch lag toward near-real-time processing.
 name: near-real-time-simulation
 description: Event-driven near-real-time processing with quota-aware routing.
 scenario: post-call-analytics

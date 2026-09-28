@@ -22,7 +22,8 @@ from benchmarking.infrastructure import (
 from foundry.adapters import RetryingProvider, RetryStats, resolve_execution_backend
 from foundry.model_catalog import ApproxTokenCounter
 from observability import get_logger
-from observability.metrics import MetricSink
+from observability.metrics import MetricSink, Timer
+from observability.tracing import span
 from optimization import OptimizationStrategy, PromptBundle, StrategyContext, TranscriptOutcome
 from optimization.caching import CacheBundle
 from registry.scenario_registry import scenario_registry
@@ -33,7 +34,6 @@ from shared.configuration import (
     ScenarioConfig,
     load_pricing_config,
 )
-from shared.timing import monotonic_seconds
 from shared.types import ExecutionMode, Transcript
 from workloads.base import WorkloadScenario
 
@@ -94,6 +94,33 @@ class BenchmarkRunner:
         ``--mode``), so the result records the file's intent alongside what
         actually ran.
         """
+        with (
+            span(
+                "benchmark.run",
+                benchmark=config.name,
+                strategy=config.strategy,
+                routing=config.routing,
+                mode=config.execution_mode,
+            ),
+            Timer() as timer,
+        ):
+            result = self._run(
+                config,
+                config_path=config_path,
+                overrides=overrides,
+                config_execution_mode=config_execution_mode,
+            )
+        _logger.info("Benchmark '%s' finished in %.2fs", config.name, timer.elapsed_ms / 1000.0)
+        return result
+
+    def _run(
+        self,
+        config: BenchmarkConfig,
+        *,
+        config_path: str | Path | None,
+        overrides: dict[str, Any] | None,
+        config_execution_mode: str | None,
+    ) -> BenchmarkResult:
         scenario_cls = scenario_registry.get(config.scenario)
         scenario = scenario_cls()
         scenario_config = scenario.load_config()
@@ -184,9 +211,12 @@ class BenchmarkRunner:
         ctx: StrategyContext,
         max_concurrency: int,
     ) -> tuple[list[TranscriptOutcome], float]:
-        started = monotonic_seconds()
-        outcomes = cls._process_dataset(strategy, dataset, ctx, max_concurrency)
-        return outcomes, monotonic_seconds() - started
+        with (
+            span("benchmark.process", transcripts=len(dataset), workers=max_concurrency),
+            Timer() as timer,
+        ):
+            outcomes = cls._process_dataset(strategy, dataset, ctx, max_concurrency)
+        return outcomes, timer.elapsed_ms / 1000.0
 
     @staticmethod
     def _observed_stats(providers: Mapping[str, object]) -> RetryStats | None:
