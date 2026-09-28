@@ -1,3 +1,4 @@
+import { isLegacyLive } from "../insights";
 import type { BenchmarkResult } from "../types";
 
 interface BenchmarkComparisonProps {
@@ -38,6 +39,8 @@ function metricValue(r: BenchmarkResult, key: string): number {
   return (r.metrics as unknown as Record<string, number>)[key] ?? Number.NaN;
 }
 
+const MODELED_IN_LEGACY = new Set(["effective_tokens_per_minute", "http_429_rate"]);
+
 // Mirrors reporting/comparability.py so the viewer warns about the same
 // like-for-unlike comparisons the CLI refuses.
 const MAX_VOLUME_RATIO = 2;
@@ -46,7 +49,7 @@ function throttlingSource(r: BenchmarkResult): string {
   return r.metrics.throttling_source ?? "modeled";
 }
 
-function mixedReasons(results: BenchmarkResult[]): string[] {
+export function mixedReasons(results: BenchmarkResult[]): string[] {
   const [base, ...rest] = results;
   const reasons: string[] = [];
   for (const r of rest) {
@@ -89,10 +92,15 @@ export function BenchmarkComparison({ results }: BenchmarkComparisonProps) {
   const baseline = results[0];
   const showDelta = results.length >= 2;
   const reasons = mixedReasons(results);
+  const legacyLive = results.some(isLegacyLive);
 
   return (
     <section>
       <h2>Benchmark comparison</h2>
+      <p className="section-intro">
+        Operations and cost per run. The first column is the baseline; the last column shows how the
+        final run differs from it (green = better, red = worse).
+      </p>
       {reasons.length > 0 && (
         <div className="warning">
           <strong>Mixed comparison — these runs are not like-for-like.</strong>
@@ -131,6 +139,9 @@ export function BenchmarkComparison({ results }: BenchmarkComparisonProps) {
                 {results.map((r, i) => (
                   <td className="num" key={`${r.name}-${i}`}>
                     {row.format(metricValue(r, row.key))}
+                    {isLegacyLive(r) && MODELED_IN_LEGACY.has(row.key) && (
+                      <span className="modeled-mark" title="Modeled in legacy live results">*</span>
+                    )}
                   </td>
                 ))}
                 {showDelta && (
@@ -143,6 +154,12 @@ export function BenchmarkComparison({ results }: BenchmarkComparisonProps) {
           })}
         </tbody>
       </table>
+      {legacyLive && (
+        <p className="footnote">
+          * Modeled, not measured: this live run was recorded before run provenance, so its TPM and
+          HTTP 429 rate come from the quota simulation. See “Observed on live Azure” for measured values.
+        </p>
+      )}
     </section>
   );
 }

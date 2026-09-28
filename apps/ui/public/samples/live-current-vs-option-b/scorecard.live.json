@@ -1,0 +1,206 @@
+{
+  "runs": [
+    "current-state (live)",
+    "option-b (live)"
+  ],
+  "mixed": false,
+  "provenance": [
+    {
+      "execution_mode": "azure",
+      "execution_backend": "direct",
+      "transcripts": 30,
+      "schema_version": 1,
+      "throttling_source": "modeled",
+      "timing_source": "modeled",
+      "cost_extrapolated": null,
+      "model_deployments": {},
+      "config_sha256": null,
+      "config_execution_mode": null,
+      "generated_at": null
+    },
+    {
+      "execution_mode": "azure",
+      "execution_backend": "direct",
+      "transcripts": 25,
+      "schema_version": 1,
+      "throttling_source": "modeled",
+      "timing_source": "modeled",
+      "cost_extrapolated": null,
+      "model_deployments": {},
+      "config_sha256": null,
+      "config_execution_mode": null,
+      "generated_at": null
+    }
+  ],
+  "comparability_issues": [
+    {
+      "label": "current-state (live)",
+      "check": "provenance",
+      "message": "legacy result with no provenance (config, deployments, git SHA); re-run to record them.",
+      "blocking": false
+    },
+    {
+      "label": "current-state (live)",
+      "check": "throttling_source",
+      "message": "live Azure run whose 429 rate, retries, and batch time are MODELED, not observed (produced before observed metrics were recorded).",
+      "blocking": false
+    },
+    {
+      "label": "option-b (live)",
+      "check": "provenance",
+      "message": "legacy result with no provenance (config, deployments, git SHA); re-run to record them.",
+      "blocking": false
+    },
+    {
+      "label": "option-b (live)",
+      "check": "throttling_source",
+      "message": "live Azure run whose 429 rate, retries, and batch time are MODELED, not observed (produced before observed metrics were recorded).",
+      "blocking": false
+    }
+  ],
+  "rows": [
+    {
+      "metric": "batch_completion_seconds",
+      "label": "Batch completion",
+      "category": "Operations",
+      "unit": "s",
+      "higher_is_better": false,
+      "values": [
+        1293.89,
+        767.58
+      ],
+      "delta": -526.3100000000001,
+      "improved": true
+    },
+    {
+      "metric": "transcripts_per_minute",
+      "label": "Throughput",
+      "category": "Operations",
+      "unit": "tx/min",
+      "higher_is_better": true,
+      "values": [
+        1.391,
+        1.954
+      ],
+      "delta": 0.563,
+      "improved": true
+    },
+    {
+      "metric": "effective_tokens_per_minute",
+      "label": "Effective TPM",
+      "category": "Operations",
+      "unit": "tok/min",
+      "higher_is_better": true,
+      "values": [
+        43121.97,
+        33187.12
+      ],
+      "delta": -9934.849999999999,
+      "improved": false
+    },
+    {
+      "metric": "p95_latency_ms",
+      "label": "p95 latency",
+      "category": "Operations",
+      "unit": "ms",
+      "higher_is_better": false,
+      "values": [
+        57226.562,
+        36672.79
+      ],
+      "delta": -20553.771999999997,
+      "improved": true
+    },
+    {
+      "metric": "http_429_rate",
+      "label": "429 rate",
+      "category": "Operations",
+      "unit": "rate",
+      "higher_is_better": false,
+      "values": [
+        0.0,
+        0.0
+      ],
+      "delta": 0.0,
+      "improved": false
+    },
+    {
+      "metric": "retry_count",
+      "label": "Retries",
+      "category": "Operations",
+      "unit": "",
+      "higher_is_better": false,
+      "values": [
+        0.0,
+        0.0
+      ],
+      "delta": 0.0,
+      "improved": false
+    },
+    {
+      "metric": "cache_hit_rate",
+      "label": "Cache hit rate",
+      "category": "Operations",
+      "unit": "rate",
+      "higher_is_better": true,
+      "values": [
+        0.0,
+        0.0
+      ],
+      "delta": 0.0,
+      "improved": false
+    },
+    {
+      "metric": "average_tokens_per_transcript",
+      "label": "Tokens / transcript",
+      "category": "Cost",
+      "unit": "tok",
+      "higher_is_better": false,
+      "values": [
+        30997.2,
+        16982.52
+      ],
+      "delta": -14014.68,
+      "improved": true
+    },
+    {
+      "metric": "cost_per_transcript",
+      "label": "Cost / transcript",
+      "category": "Cost",
+      "unit": "$",
+      "higher_is_better": false,
+      "values": [
+        0.008327,
+        0.008214
+      ],
+      "delta": -0.00011299999999999852,
+      "improved": true
+    },
+    {
+      "metric": "cost_per_day",
+      "label": "Cost / day",
+      "category": "Cost",
+      "unit": "$",
+      "higher_is_better": false,
+      "values": [
+        58.29,
+        57.5
+      ],
+      "delta": -0.7899999999999991,
+      "improved": true
+    },
+    {
+      "metric": "cost_per_month",
+      "label": "Cost / month",
+      "category": "Cost",
+      "unit": "$",
+      "higher_is_better": false,
+      "values": [
+        1748.7,
+        1724.86
+      ],
+      "delta": -23.840000000000146,
+      "improved": true
+    }
+  ]
+}

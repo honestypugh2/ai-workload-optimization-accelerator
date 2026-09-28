@@ -1,0 +1,13 @@
+{
+  "name": "member-id-baseline",
+  "scenario": "post-call-analytics",
+  "metrics": {
+    "member_id_recall": 0.3077,
+    "member_id_precision": 1.0,
+    "member_id_false_positive_rate": 0.0,
+    "member_id_false_negative_rate": 0.6923,
+    "extraction_success_rate": 0.3077
+  },
+  "thresholds": [],
+  "gate_passed": true
+}

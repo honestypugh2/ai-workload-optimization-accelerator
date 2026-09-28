@@ -1,0 +1,35 @@
+{
+  "name": "member-id",
+  "scenario": "post-call-analytics",
+  "metrics": {
+    "member_id_recall": 0.9349,
+    "member_id_precision": 0.9349,
+    "member_id_false_positive_rate": 0.0,
+    "member_id_false_negative_rate": 0.0651,
+    "extraction_success_rate": 0.9349
+  },
+  "thresholds": [
+    {
+      "metric": "member_id_recall",
+      "op": "gte",
+      "threshold": 0.9,
+      "actual": 0.9349,
+      "passed": true
+    },
+    {
+      "metric": "member_id_precision",
+      "op": "gte",
+      "threshold": 0.85,
+      "actual": 0.9349,
+      "passed": true
+    },
+    {
+      "metric": "member_id_false_positive_rate",
+      "op": "lte",
+      "threshold": 0.1,
+      "actual": 0.0,
+      "passed": true
+    }
+  ],
+  "gate_passed": true
+}

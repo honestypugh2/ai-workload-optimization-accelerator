@@ -54,7 +54,8 @@ uv run pytest -q
 cd apps/ui
 npm install
 npm run dev
-# open the printed URL, then load *.result.json / *.eval.json files
+# open the printed URL — bundled synthetic results load automatically;
+# use the Results dropdown to switch sets or upload *.result.json / *.eval.json files
 ```
 
 ## Expected reference numbers

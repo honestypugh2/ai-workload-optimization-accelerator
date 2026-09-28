@@ -94,4 +94,4 @@ uv run aiwoa report scorecard \
 
 echo
 echo "==> Scorecard written to ${REPORTS}/scorecard.json"
-echo "==> Load any *.result.json / *.eval.json / scorecard.json in apps/ui to explore visually."
+echo "==> Open apps/ui (npm run dev) and choose 'Upload your own files…' to explore these results visually."

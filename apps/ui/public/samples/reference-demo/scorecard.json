@@ -1,0 +1,340 @@
+{
+  "runs": [
+    "Current state",
+    "Token reduction",
+    "Multi-deployment",
+    "Optimized target"
+  ],
+  "mixed": false,
+  "provenance": [
+    {
+      "execution_mode": "local",
+      "execution_backend": "local",
+      "transcripts": 200,
+      "schema_version": 2,
+      "throttling_source": "modeled",
+      "timing_source": "modeled",
+      "cost_extrapolated": true,
+      "model_deployments": {
+        "baseline": "mock:baseline"
+      },
+      "config_sha256": "51abaf96f87c52b64a174ed9242549eb6a61dce2f026add86be9d1dd0fed42b6",
+      "config_execution_mode": "local",
+      "generated_at": "2026-09-28T21:24:57+00:00"
+    },
+    {
+      "execution_mode": "local",
+      "execution_backend": "local",
+      "transcripts": 200,
+      "schema_version": 2,
+      "throttling_source": "modeled",
+      "timing_source": "modeled",
+      "cost_extrapolated": true,
+      "model_deployments": {
+        "baseline": "mock:baseline"
+      },
+      "config_sha256": "c7836dea27c359c0e0e5ea4a53069882890fff09186219afb9c600ae11cc9ac4",
+      "config_execution_mode": "local",
+      "generated_at": "2026-09-28T21:24:59+00:00"
+    },
+    {
+      "execution_mode": "local",
+      "execution_backend": "local",
+      "transcripts": 200,
+      "schema_version": 2,
+      "throttling_source": "modeled",
+      "timing_source": "modeled",
+      "cost_extrapolated": true,
+      "model_deployments": {
+        "medium": "mock:medium",
+        "small": "mock:small"
+      },
+      "config_sha256": "0b1b9f7bb5f15a8084400ddd3cf358a8c667473c563104c1cd6450319dd0da94",
+      "config_execution_mode": "local",
+      "generated_at": "2026-09-28T21:25:01+00:00"
+    },
+    {
+      "execution_mode": "local",
+      "execution_backend": "local",
+      "transcripts": 200,
+      "schema_version": 2,
+      "throttling_source": "modeled",
+      "timing_source": "modeled",
+      "cost_extrapolated": true,
+      "model_deployments": {
+        "baseline": "mock:baseline"
+      },
+      "config_sha256": "bde28278d444ca56d46fbd8bab45fe7aa7d169e3ab7c88e457acb5dddf0cacc8",
+      "config_execution_mode": "local",
+      "generated_at": "2026-09-28T21:25:03+00:00"
+    }
+  ],
+  "comparability_issues": [
+    {
+      "label": "Current state",
+      "check": "cost_extrapolated",
+      "message": "cost/day and cost/month are extrapolated from 200 transcripts.",
+      "blocking": false
+    },
+    {
+      "label": "Token reduction",
+      "check": "cost_extrapolated",
+      "message": "cost/day and cost/month are extrapolated from 200 transcripts.",
+      "blocking": false
+    },
+    {
+      "label": "Multi-deployment",
+      "check": "cost_extrapolated",
+      "message": "cost/day and cost/month are extrapolated from 200 transcripts.",
+      "blocking": false
+    },
+    {
+      "label": "Optimized target",
+      "check": "cost_extrapolated",
+      "message": "cost/day and cost/month are extrapolated from 200 transcripts.",
+      "blocking": false
+    }
+  ],
+  "rows": [
+    {
+      "metric": "batch_completion_seconds",
+      "label": "Batch completion",
+      "category": "Operations",
+      "unit": "s",
+      "higher_is_better": false,
+      "values": [
+        1260.0,
+        900.0,
+        120.0,
+        180.0
+      ],
+      "delta": -1080.0,
+      "improved": true
+    },
+    {
+      "metric": "transcripts_per_minute",
+      "label": "Throughput",
+      "category": "Operations",
+      "unit": "tx/min",
+      "higher_is_better": true,
+      "values": [
+        9.524,
+        13.333,
+        100.0,
+        66.667
+      ],
+      "delta": 57.143,
+      "improved": true
+    },
+    {
+      "metric": "effective_tokens_per_minute",
+      "label": "Effective TPM",
+      "category": "Operations",
+      "unit": "tok/min",
+      "higher_is_better": true,
+      "values": [
+        241835.71,
+        194603.0,
+        1254775.0,
+        836516.67
+      ],
+      "delta": 594680.9600000001,
+      "improved": true
+    },
+    {
+      "metric": "p95_latency_ms",
+      "label": "p95 latency",
+      "category": "Operations",
+      "unit": "ms",
+      "higher_is_better": false,
+      "values": [
+        927.142,
+        832.666,
+        471.857,
+        456.932
+      ],
+      "delta": -470.21000000000004,
+      "improved": true
+    },
+    {
+      "metric": "http_429_rate",
+      "label": "429 rate",
+      "category": "Operations",
+      "unit": "rate",
+      "higher_is_better": false,
+      "values": [
+        0.02,
+        0.014,
+        0.0012,
+        0.0023
+      ],
+      "delta": -0.0177,
+      "improved": true
+    },
+    {
+      "metric": "retry_count",
+      "label": "Retries",
+      "category": "Operations",
+      "unit": "",
+      "higher_is_better": false,
+      "values": [
+        20.0,
+        14.0,
+        1.0,
+        2.0
+      ],
+      "delta": -18.0,
+      "improved": true
+    },
+    {
+      "metric": "cache_hit_rate",
+      "label": "Cache hit rate",
+      "category": "Operations",
+      "unit": "rate",
+      "higher_is_better": true,
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "delta": 0.0,
+      "improved": false
+    },
+    {
+      "metric": "average_tokens_per_transcript",
+      "label": "Tokens / transcript",
+      "category": "Cost",
+      "unit": "tok",
+      "higher_is_better": false,
+      "values": [
+        25392.75,
+        14595.23,
+        12547.75,
+        12547.75
+      ],
+      "delta": -12845.0,
+      "improved": true
+    },
+    {
+      "metric": "cost_per_transcript",
+      "label": "Cost / transcript",
+      "category": "Cost",
+      "unit": "$",
+      "higher_is_better": false,
+      "values": [
+        0.005655,
+        0.00344,
+        0.004947,
+        0.00299
+      ],
+      "delta": -0.0026650000000000003,
+      "improved": true
+    },
+    {
+      "metric": "cost_per_day",
+      "label": "Cost / day",
+      "category": "Cost",
+      "unit": "$",
+      "higher_is_better": false,
+      "values": [
+        39.59,
+        24.08,
+        34.63,
+        20.93
+      ],
+      "delta": -18.660000000000004,
+      "improved": true
+    },
+    {
+      "metric": "cost_per_month",
+      "label": "Cost / month",
+      "category": "Cost",
+      "unit": "$",
+      "higher_is_better": false,
+      "values": [
+        1187.61,
+        722.4,
+        1038.77,
+        628.0
+      ],
+      "delta": -559.6099999999999,
+      "improved": true
+    },
+    {
+      "metric": "member_id_recall",
+      "label": "Member-ID recall",
+      "category": "Quality",
+      "unit": "rate",
+      "higher_is_better": true,
+      "values": [
+        0.3077,
+        null,
+        null,
+        0.9349
+      ],
+      "delta": 0.6272,
+      "improved": true
+    },
+    {
+      "metric": "member_id_precision",
+      "label": "Member-ID precision",
+      "category": "Quality",
+      "unit": "rate",
+      "higher_is_better": true,
+      "values": [
+        1.0,
+        null,
+        null,
+        0.9349
+      ],
+      "delta": -0.06510000000000005,
+      "improved": false
+    },
+    {
+      "metric": "member_id_false_positive_rate",
+      "label": "Member-ID FPR",
+      "category": "Quality",
+      "unit": "rate",
+      "higher_is_better": false,
+      "values": [
+        0.0,
+        null,
+        null,
+        0.0
+      ],
+      "delta": 0.0,
+      "improved": false
+    },
+    {
+      "metric": "member_id_false_negative_rate",
+      "label": "Member-ID FNR",
+      "category": "Quality",
+      "unit": "rate",
+      "higher_is_better": false,
+      "values": [
+        0.6923,
+        null,
+        null,
+        0.0651
+      ],
+      "delta": -0.6272,
+      "improved": true
+    },
+    {
+      "metric": "extraction_success_rate",
+      "label": "Extraction success",
+      "category": "Quality",
+      "unit": "rate",
+      "higher_is_better": true,
+      "values": [
+        0.3077,
+        null,
+        null,
+        0.9349
+      ],
+      "delta": 0.6272,
+      "improved": true
+    }
+  ]
+}

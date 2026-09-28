@@ -1,0 +1,179 @@
+{
+  "sets": [
+    {
+      "id": "reference-demo",
+      "label": "Reference demo — current state → optimized (synthetic, 200 transcripts)",
+      "description": "Credential-free run of each optimization lever and the stacked optimized target, with member-ID quality and the combined scorecard. Matches release v0.1.0.",
+      "benchmarks": [
+        "current-state-batch.local.result.json",
+        "token-optimization.local.result.json",
+        "routing-comparison.local.result.json",
+        "optimized-target.local.result.json"
+      ],
+      "evaluations": [
+        "member-id-baseline.eval.json",
+        "member-id.eval.json"
+      ],
+      "scorecard": "scorecard.json",
+      "labels": {
+        "current-state-batch.local.result.json": "Current state",
+        "token-optimization.local.result.json": "Token reduction",
+        "routing-comparison.local.result.json": "Multi-deployment routing",
+        "optimized-target.local.result.json": "Optimized target"
+      },
+      "takeaways": [
+        "Stacking the levers (optimized target) vs the current state: tokens per transcript 25,393 → 12,548 (−50.6%), p95 latency 927 → 457 ms (−50.7%), estimated cost $1,187.61 → $628.00 per month (−47.1%), and modeled HTTP 429 rate 2.0% → 0.2%.",
+        "Token reduction alone delivers most of the cost saving (tokens −42.5%, cost −39.2% to $722.40/month), but throttling remains (429 rate 1.4%) because every call still shares one deployment.",
+        "Multi-deployment routing removes throttling (429 rate 0.1%, batch 1,260 s → 120 s) but saves less cost (−12.5%) because some tasks route to a pricier model tier.",
+        "Quality: member-ID recall rises from 30.8% (naive regex) to 93.5% (deterministic extraction cascade) with 0% false positives and 93.5% precision. The candidate passes the release gate (recall ≥ 90%, precision ≥ 85%, false-positive rate ≤ 10%)."
+      ],
+      "caveats": [
+        "Synthetic transcripts and a deterministic mock model — no Azure calls. Latency, HTTP 429s, and batch time are modeled by the quota simulation.",
+        "Cost is an estimate from the example pricing file, extrapolated from 200 transcripts to 7,000 per day.",
+        "The naive baseline evaluation has no gate rules; it is shown for comparison."
+      ]
+    },
+    {
+      "id": "architecture-options",
+      "label": "Architecture options — current state vs Options A/B/C (modeled, 7,000/day)",
+      "description": "Modeled full-day batch across the assessment options and a single high-quota deployment. Operations and cost only.",
+      "benchmarks": [
+        "current-state-azure.local.result.json",
+        "option-a-azure.local.result.json",
+        "option-b-azure.local.result.json",
+        "option-c-azure.local.result.json",
+        "foundry-current-config-azure.local.result.json"
+      ],
+      "evaluations": [],
+      "scorecard": "scorecard.json",
+      "labels": {
+        "current-state-azure.local.result.json": "Current state",
+        "option-a-azure.local.result.json": "Option A",
+        "option-b-azure.local.result.json": "Option B",
+        "option-c-azure.local.result.json": "Option C",
+        "foundry-current-config-azure.local.result.json": "High-quota single deployment"
+      },
+      "takeaways": [
+        "Current state (one shared 250K-TPM deployment) needs ~11.9 hours to clear 7,000 transcripts with a 2.0% HTTP 429 rate — the throttled baseline.",
+        "Option A (quota-aware routing across 4 deployments plus token reduction) cuts the batch to ~1.8 hours and cost to $626.79/month (−46.6%) — the cheapest option.",
+        "Option B (task-based routing plus caching) clears the batch in ~44 minutes with a 0.1% 429 rate at $1,031.80/month.",
+        "Option C (PTU base plus Standard burst) is as fast as B but the most expensive ($1,750.23/month, +49.2%) — justified only when latency must be guaranteed.",
+        "A single high-quota deployment (25M TPM) removes throttling (8 minutes, 0.02% 429s) but leaves cost unchanged ($1,172.91/month) because no tokens are saved."
+      ],
+      "caveats": [
+        "Modeled: synthetic transcripts, mock model, and a quota simulation for HTTP 429s and timing — no Azure calls.",
+        "Options B and C send some tasks to pricier model tiers in the example pricing file, which is why they cost more than A despite equal token counts.",
+        "For measurements on real Azure, choose a “Live Azure” result set."
+      ]
+    },
+    {
+      "id": "live-current-vs-option-b",
+      "label": "Live Azure (sandbox) — current state vs Option B (30 vs 25 transcripts)",
+      "description": "Live inference on a gpt-5.4-nano Global Standard deployment in the author's sandbox (direct mode) with synthetic transcripts. Small samples — directional.",
+      "benchmarks": [
+        "gpt54nano-smoke30.result.json",
+        "option-b-azure.result.json"
+      ],
+      "evaluations": [],
+      "scorecard": "scorecard.live.json",
+      "labels": {
+        "gpt54nano-smoke30.result.json": "Current state (live, 30)",
+        "option-b-azure.result.json": "Option B (live, 25)"
+      },
+      "takeaways": [
+        "Option B cut tokens per transcript from 30,997 to 16,983 (−45.2%) by extracting deterministically and sending the model only what each task needs.",
+        "Latency dropped: p50 38.5 s → 27.8 s (−27.7%) and p95 57.2 s → 36.7 s (−35.9%).",
+        "Estimated cost looks flat ($1,748.70 vs $1,724.86 per month) only because the pricing file bills Option B's tasks at small/medium tier rates. Every call actually hit the same nano deployment; at the nano rate Option B is about $0.0054 vs $0.0083 per transcript (≈35% lower, author's estimate).",
+        "The current-state sample completed 150 of 150 model calls successfully with no HTTP 429 responses (from its run log)."
+      ],
+      "caveats": [
+        "Recorded before run provenance was added: TPM, HTTP 429 rate, and batch time in these files are modeled (marked *). Latency, tokens, and cost are measured.",
+        "30 vs 25 transcripts — directional, not a pinned comparison.",
+        "Direct mode sends every model tier to one deployment, so tier routing is not exercised live.",
+        "No run log was kept for the Option B run, so it has no observed row."
+      ],
+      "observed": {
+        "note": "Derived from the run log (not bundled because it contains endpoint hostnames). Each transcript makes 5 model calls.",
+        "rows": [
+          {
+            "run": "Current state (30)",
+            "transcripts": 30,
+            "workers": 24,
+            "wall_clock_seconds": 70,
+            "requests": 150,
+            "http_200": 150,
+            "http_429": 0,
+            "other_errors": "none",
+            "observed_tokens_per_minute": 797071,
+            "transcripts_per_minute": 25.7
+          }
+        ]
+      }
+    },
+    {
+      "id": "live-full-batch",
+      "label": "Live Azure (sandbox) — full 7,000-transcript current-state batch",
+      "description": "One day's volume processed live on a gpt-5.4-nano Global Standard deployment (5M TPM quota) in the author's sandbox with 24 concurrent workers and synthetic transcripts.",
+      "benchmarks": [
+        "gpt54nano-full-7000.result.json"
+      ],
+      "evaluations": [],
+      "scorecard": null,
+      "labels": {
+        "gpt54nano-full-7000.result.json": "Current state (live, 7,000)"
+      },
+      "takeaways": [
+        "All 7,000 transcripts (35,001 model calls) completed in 2.50 hours with zero HTTP 429 responses; one transient HTTP 500 was retried successfully.",
+        "The deployment ran at about 1.22M tokens per minute — roughly 24% of its 5M TPM quota — so the quota was not the constraint.",
+        "Throughput follows concurrency ÷ per-transcript latency: 24 workers ÷ 32.6 s median ≈ 44 transcripts/min, close to the observed 46.6. Per-call latency and concurrency bound the batch, not TPM.",
+        "Smaller runs of the same configuration show lower throughput (25.7 and 37.6 transcripts/min at 30 and 500) because start-up and the final partial wave weigh more; at full volume the worker pool stays busy.",
+        "Estimated cost: $0.0074 per transcript, about $1,559 per month at 7,000 per day (pricing-file estimate)."
+      ],
+      "caveats": [
+        "This file predates run provenance: its TPM (45,858), HTTP 429 rate (0.1%), and batch time (~66.5 h) are modeled and do not reflect the run — use the observed table.",
+        "Sandbox deployment and synthetic transcripts; not a production measurement."
+      ],
+      "observed": {
+        "note": "Derived from the run logs (not bundled because they contain endpoint hostnames). Same configuration at three volumes; each transcript makes 5 model calls.",
+        "rows": [
+          {
+            "run": "Current state (30)",
+            "transcripts": 30,
+            "workers": 24,
+            "wall_clock_seconds": 70,
+            "requests": 150,
+            "http_200": 150,
+            "http_429": 0,
+            "other_errors": "none",
+            "observed_tokens_per_minute": 797071,
+            "transcripts_per_minute": 25.7
+          },
+          {
+            "run": "Current state (500)",
+            "transcripts": 500,
+            "workers": 24,
+            "wall_clock_seconds": 797,
+            "requests": 2500,
+            "http_200": 2500,
+            "http_429": 0,
+            "other_errors": "none",
+            "observed_tokens_per_minute": 977488,
+            "transcripts_per_minute": 37.6
+          },
+          {
+            "run": "Current state (7,000)",
+            "transcripts": 7000,
+            "workers": 24,
+            "wall_clock_seconds": 9010,
+            "requests": 35001,
+            "http_200": 35000,
+            "http_429": 0,
+            "other_errors": "1 × HTTP 500 (retried)",
+            "observed_tokens_per_minute": 1218532,
+            "transcripts_per_minute": 46.6
+          }
+        ]
+      }
+    }
+  ]
+}

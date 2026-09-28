@@ -50,6 +50,10 @@ export function ScorecardPanel({ scorecard }: ScorecardPanelProps) {
   return (
     <section>
       <h2>Combined ops + cost + quality scorecard</h2>
+      <p className="section-intro">
+        One column per run across operations, cost, and quality. The Δ column compares the last run
+        with the first (baseline); green = better, red = worse, — = not measured for that run.
+      </p>
       {(scorecard.mixed || blocking.length > 0) && (
         <div className="warning">
           <strong>Mixed comparison — rendered with --allow-mixed.</strong>

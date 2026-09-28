@@ -1,0 +1,299 @@
+{
+  "runs": [
+    "Current state",
+    "Option A",
+    "Option B",
+    "Option C",
+    "High-quota single deployment"
+  ],
+  "mixed": false,
+  "provenance": [
+    {
+      "execution_mode": "local",
+      "execution_backend": "local",
+      "transcripts": 7000,
+      "schema_version": 2,
+      "throttling_source": "modeled",
+      "timing_source": "modeled",
+      "cost_extrapolated": false,
+      "model_deployments": {
+        "baseline": "mock:baseline"
+      },
+      "config_sha256": "97da930a3062e7756fb3e9816607460fe3dcdc97dff292c1908166e574cccb71",
+      "config_execution_mode": "azure",
+      "generated_at": "2026-09-28T21:25:50+00:00"
+    },
+    {
+      "execution_mode": "local",
+      "execution_backend": "local",
+      "transcripts": 7000,
+      "schema_version": 2,
+      "throttling_source": "modeled",
+      "timing_source": "modeled",
+      "cost_extrapolated": false,
+      "model_deployments": {
+        "baseline": "mock:baseline"
+      },
+      "config_sha256": "d874199d7b06fabebdbbda4a3adcb592ecc5ec8881dfcacf64685f1e5da34a26",
+      "config_execution_mode": "azure",
+      "generated_at": "2026-09-28T21:26:53+00:00"
+    },
+    {
+      "execution_mode": "local",
+      "execution_backend": "local",
+      "transcripts": 7000,
+      "schema_version": 2,
+      "throttling_source": "modeled",
+      "timing_source": "modeled",
+      "cost_extrapolated": false,
+      "model_deployments": {
+        "medium": "mock:medium",
+        "small": "mock:small"
+      },
+      "config_sha256": "6ba2a6b811ec6c1da7a762249b25c882d6fd90cf7b6e4dce3885ee1424afc9d4",
+      "config_execution_mode": "azure",
+      "generated_at": "2026-09-28T21:27:57+00:00"
+    },
+    {
+      "execution_mode": "local",
+      "execution_backend": "local",
+      "transcripts": 7000,
+      "schema_version": 2,
+      "throttling_source": "modeled",
+      "timing_source": "modeled",
+      "cost_extrapolated": false,
+      "model_deployments": {
+        "medium": "mock:medium",
+        "small": "mock:small"
+      },
+      "config_sha256": "6ab269d51fad701b28f11754a7ae6508ec015f03be0662dbac4b9448fc695871",
+      "config_execution_mode": "azure",
+      "generated_at": "2026-09-28T21:28:59+00:00"
+    },
+    {
+      "execution_mode": "local",
+      "execution_backend": "local",
+      "transcripts": 7000,
+      "schema_version": 2,
+      "throttling_source": "modeled",
+      "timing_source": "modeled",
+      "cost_extrapolated": false,
+      "model_deployments": {
+        "baseline": "mock:baseline"
+      },
+      "config_sha256": "c80775a940c1863e5bfe4a8ecc0dd3bfe73cef315c4644bcd041d156f96e2d9c",
+      "config_execution_mode": "azure",
+      "generated_at": "2026-09-28T21:29:50+00:00"
+    }
+  ],
+  "comparability_issues": [
+    {
+      "label": "Current state",
+      "check": "mode_override",
+      "message": "config declares execution_mode 'azure' but ran as 'local' (CLI --mode override).",
+      "blocking": false
+    },
+    {
+      "label": "Option A",
+      "check": "mode_override",
+      "message": "config declares execution_mode 'azure' but ran as 'local' (CLI --mode override).",
+      "blocking": false
+    },
+    {
+      "label": "Option B",
+      "check": "mode_override",
+      "message": "config declares execution_mode 'azure' but ran as 'local' (CLI --mode override).",
+      "blocking": false
+    },
+    {
+      "label": "Option C",
+      "check": "mode_override",
+      "message": "config declares execution_mode 'azure' but ran as 'local' (CLI --mode override).",
+      "blocking": false
+    },
+    {
+      "label": "High-quota single deployment",
+      "check": "mode_override",
+      "message": "config declares execution_mode 'azure' but ran as 'local' (CLI --mode override).",
+      "blocking": false
+    }
+  ],
+  "rows": [
+    {
+      "metric": "batch_completion_seconds",
+      "label": "Batch completion",
+      "category": "Operations",
+      "unit": "s",
+      "higher_is_better": false,
+      "values": [
+        42720.0,
+        6600.0,
+        2640.0,
+        2640.0,
+        480.0
+      ],
+      "delta": -42240.0,
+      "improved": true
+    },
+    {
+      "metric": "transcripts_per_minute",
+      "label": "Throughput",
+      "category": "Operations",
+      "unit": "tx/min",
+      "higher_is_better": true,
+      "values": [
+        9.831,
+        63.636,
+        159.091,
+        159.091,
+        875.0
+      ],
+      "delta": 865.169,
+      "improved": true
+    },
+    {
+      "metric": "effective_tokens_per_minute",
+      "label": "Effective TPM",
+      "category": "Operations",
+      "unit": "tok/min",
+      "higher_is_better": true,
+      "values": [
+        246291.58,
+        796329.77,
+        1990824.43,
+        1990824.43,
+        21919950.62
+      ],
+      "delta": 21673659.040000003,
+      "improved": true
+    },
+    {
+      "metric": "p95_latency_ms",
+      "label": "p95 latency",
+      "category": "Operations",
+      "unit": "ms",
+      "higher_is_better": false,
+      "values": [
+        926.16,
+        458.924,
+        470.329,
+        632.359,
+        687.96
+      ],
+      "delta": -238.19999999999993,
+      "improved": true
+    },
+    {
+      "metric": "http_429_rate",
+      "label": "429 rate",
+      "category": "Operations",
+      "unit": "rate",
+      "higher_is_better": false,
+      "values": [
+        0.0203,
+        0.0036,
+        0.0014,
+        0.0014,
+        0.0002
+      ],
+      "delta": -0.0201,
+      "improved": true
+    },
+    {
+      "metric": "retry_count",
+      "label": "Retries",
+      "category": "Operations",
+      "unit": "",
+      "higher_is_better": false,
+      "values": [
+        711.0,
+        109.0,
+        43.0,
+        43.0,
+        7.0
+      ],
+      "delta": -704.0,
+      "improved": true
+    },
+    {
+      "metric": "cache_hit_rate",
+      "label": "Cache hit rate",
+      "category": "Operations",
+      "unit": "rate",
+      "higher_is_better": true,
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "delta": 0.0,
+      "improved": false
+    },
+    {
+      "metric": "average_tokens_per_transcript",
+      "label": "Tokens / transcript",
+      "category": "Cost",
+      "unit": "tok",
+      "higher_is_better": false,
+      "values": [
+        25051.37,
+        12513.75,
+        12513.75,
+        12513.75,
+        25051.37
+      ],
+      "delta": 0.0,
+      "improved": false
+    },
+    {
+      "metric": "cost_per_transcript",
+      "label": "Cost / transcript",
+      "category": "Cost",
+      "unit": "$",
+      "higher_is_better": false,
+      "values": [
+        0.005585,
+        0.002985,
+        0.004913,
+        0.008334,
+        0.005585
+      ],
+      "delta": 0.0,
+      "improved": false
+    },
+    {
+      "metric": "cost_per_day",
+      "label": "Cost / day",
+      "category": "Cost",
+      "unit": "$",
+      "higher_is_better": false,
+      "values": [
+        39.1,
+        20.89,
+        34.39,
+        58.34,
+        39.1
+      ],
+      "delta": 0.0,
+      "improved": false
+    },
+    {
+      "metric": "cost_per_month",
+      "label": "Cost / month",
+      "category": "Cost",
+      "unit": "$",
+      "higher_is_better": false,
+      "values": [
+        1172.91,
+        626.79,
+        1031.8,
+        1750.23,
+        1172.91
+      ],
+      "delta": 0.0,
+      "improved": false
+    }
+  ]
+}

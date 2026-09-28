@@ -1,0 +1,113 @@
+{
+  "schema_version": 2,
+  "name": "optimized-target",
+  "scenario": "post-call-analytics",
+  "strategy": "deterministic_first",
+  "routing": "quota_aware",
+  "execution_mode": "local",
+  "execution_backend": "local",
+  "use_optimized_mapping": false,
+  "currency": "USD",
+  "metrics": {
+    "transcripts": 200,
+    "transcripts_per_minute": 66.667,
+    "effective_tokens_per_minute": 836516.67,
+    "p50_latency_ms": 266.832,
+    "p95_latency_ms": 456.932,
+    "p99_latency_ms": 531.996,
+    "total_input_tokens": 2417945,
+    "total_output_tokens": 91605,
+    "average_tokens_per_transcript": 12547.75,
+    "estimated_cost": 0.598095,
+    "cost_per_transcript": 0.00299,
+    "cost_per_1k_transcripts": 2.9905,
+    "cost_per_day": 20.93,
+    "cost_per_month": 628.0,
+    "http_429_rate": 0.0023,
+    "retry_count": 2,
+    "error_count": 0,
+    "cache_hit_rate": 0.0,
+    "deployment_utilization": {
+      "baseline": 0.8365
+    },
+    "workload_queue_depth": 2,
+    "batch_completion_seconds": 180.0,
+    "throttling_source": "modeled",
+    "timing_source": "modeled",
+    "modeled_http_429_rate": 0.0023,
+    "modeled_retry_count": 2,
+    "modeled_batch_completion_seconds": 180.0,
+    "observed_attempts": null,
+    "observed_http_429_count": null,
+    "observed_http_429_rate": null,
+    "observed_retry_count": null,
+    "observed_transient_error_count": null,
+    "observed_backoff_seconds": null,
+    "observed_wall_clock_seconds": null,
+    "daily_volume": 7000,
+    "cost_extrapolated": true,
+    "cost_extrapolation_factor": 35.0
+  },
+  "provenance": {
+    "generated_at": "2026-09-28T21:25:03+00:00",
+    "accelerator_version": "0.1.0",
+    "git_commit": "6df8e6045e17b833a7c1e7baddf7042cfd39b027",
+    "git_dirty": false,
+    "config_path": "workload-scenarios/post-call-analytics/benchmarks/optimized-target.yaml",
+    "config_sha256": "bde28278d444ca56d46fbd8bab45fe7aa7d169e3ab7c88e457acb5dddf0cacc8",
+    "config_overrides": {
+      "transcript_count": 200,
+      "execution_mode": "local"
+    },
+    "config_execution_mode": "local",
+    "effective_config": {
+      "name": "optimized-target",
+      "description": "Optimized end state — hybrid extraction, multi-deployment routing, caching, 7,000/day.",
+      "scenario": "post-call-analytics",
+      "execution_mode": "local",
+      "strategy": "deterministic_first",
+      "routing": "quota_aware",
+      "caching": [
+        "prompt",
+        "result",
+        "metadata"
+      ],
+      "chunking": "full",
+      "use_optimized_mapping": false,
+      "transcript_count": 200,
+      "max_concurrency": 1,
+      "deployment_overrides": {
+        "deployment_count": 4,
+        "tokens_per_minute_limit": 1000000,
+        "shared_quota": false,
+        "retry_with_backoff": true
+      },
+      "pricing_file": "configs/pricing.example.yaml",
+      "seed": 1234
+    },
+    "scenario_sha256": "4309ba8378db09badd3402f4c38b86f77ffddb4786ceb70c473be6b66986e94a",
+    "pricing_file": "configs/pricing.example.yaml",
+    "pricing_sha256": "35fc8325ede54d7e68fe4f58971c78c27af43dd102b7c1c4c3c68c4efa6a7daf",
+    "deployment_profile": {
+      "deployment_count": 4,
+      "tokens_per_minute_limit": 1000000,
+      "requests_per_minute_limit": 600,
+      "shared_quota": false,
+      "retry_with_backoff": true,
+      "max_retries": 5,
+      "ptu_units": 0
+    },
+    "model_deployments": {
+      "baseline": "mock:baseline"
+    },
+    "endpoint_host": null,
+    "timing_clock": "CLOCK_MONOTONIC_RAW"
+  },
+  "notes": [
+    "Local synthetic run: no Azure calls, mock provider used.",
+    "HTTP 429, retries, and batch time are MODELED from the TPM quota simulation.",
+    "Cost/day and cost/month are extrapolated x35.0 from 200 transcripts to a 7,000-transcript day.",
+    "Caching enabled: prompt, result, metadata.",
+    "Chunking strategy: full."
+  ]
+}

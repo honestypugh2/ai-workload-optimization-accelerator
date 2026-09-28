@@ -1,0 +1,40 @@
+{
+  "name": "option-b-azure",
+  "scenario": "post-call-analytics",
+  "strategy": "deterministic_first",
+  "routing": "task_based",
+  "execution_mode": "azure",
+  "execution_backend": "direct",
+  "use_optimized_mapping": true,
+  "currency": "USD",
+  "metrics": {
+    "transcripts": 25,
+    "transcripts_per_minute": 1.954,
+    "effective_tokens_per_minute": 33187.12,
+    "p50_latency_ms": 27845.773,
+    "p95_latency_ms": 36672.79,
+    "p99_latency_ms": 37518.625,
+    "total_input_tokens": 376225,
+    "total_output_tokens": 48338,
+    "average_tokens_per_transcript": 16982.52,
+    "estimated_cost": 0.205341,
+    "cost_per_transcript": 0.008214,
+    "cost_per_1k_transcripts": 8.2136,
+    "cost_per_day": 57.5,
+    "cost_per_month": 1724.86,
+    "http_429_rate": 0.0,
+    "retry_count": 0,
+    "error_count": 0,
+    "cache_hit_rate": 0.0,
+    "deployment_utilization": {
+      "medium": 0.1927,
+      "small": 0.2319
+    },
+    "workload_queue_depth": 0,
+    "batch_completion_seconds": 767.58
+  },
+  "notes": [
+    "Caching enabled: prompt, result, metadata.",
+    "Chunking strategy: full."
+  ]
+}

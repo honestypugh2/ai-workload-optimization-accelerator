@@ -1,0 +1,38 @@
+{
+  "name": "foundry-sandbox-config-azure",
+  "scenario": "post-call-analytics",
+  "strategy": "baseline_full_transcript",
+  "routing": "single_deployment",
+  "execution_mode": "azure",
+  "execution_backend": "direct",
+  "use_optimized_mapping": false,
+  "currency": "USD",
+  "metrics": {
+    "transcripts": 7000,
+    "transcripts_per_minute": 1.754,
+    "effective_tokens_per_minute": 45858.17,
+    "p50_latency_ms": 32602.831,
+    "p95_latency_ms": 46837.547,
+    "p99_latency_ms": 56181.585,
+    "total_input_tokens": 168342125,
+    "total_output_tokens": 14640772,
+    "average_tokens_per_transcript": 26140.41,
+    "estimated_cost": 51.96939,
+    "cost_per_transcript": 0.007424,
+    "cost_per_1k_transcripts": 7.4242,
+    "cost_per_day": 51.97,
+    "cost_per_month": 1559.08,
+    "http_429_rate": 0.001,
+    "retry_count": 36,
+    "error_count": 0,
+    "cache_hit_rate": 0.0,
+    "deployment_utilization": {
+      "baseline": 0.9891
+    },
+    "workload_queue_depth": 36,
+    "batch_completion_seconds": 239411.49
+  },
+  "notes": [
+    "Chunking strategy: full."
+  ]
+}
