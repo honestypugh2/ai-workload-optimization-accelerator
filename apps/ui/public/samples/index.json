@@ -67,53 +67,66 @@
       ]
     },
     {
-      "id": "live-current-vs-option-b",
-      "label": "Live Azure (sandbox) — current state vs Option B (30 vs 25 transcripts)",
-      "description": "Live inference on a gpt-5.4-nano Global Standard deployment in the author's sandbox (direct mode) with synthetic transcripts. Small samples — directional.",
+      "id": "live-7000-current-vs-option-b",
+      "label": "Live Azure (sandbox) — current state vs Option B, 7,000 transcripts each",
+      "description": "Both configurations run live, back to back, on the same gpt-5.4-nano Global Standard deployment (5M TPM quota) in the author's sandbox on 2026-09-28, with 24 concurrent workers and synthetic transcripts. Latency, tokens, HTTP 429s, retries, and wall clock are all measured.",
       "benchmarks": [
-        "gpt54nano-smoke30.result.json",
-        "option-b-azure.result.json"
+        "current-state-azure.azure.result.json",
+        "option-b-azure.azure.result.json"
       ],
       "evaluations": [],
-      "scorecard": "scorecard.live.json",
+      "scorecard": "scorecard.live7000.json",
       "labels": {
-        "gpt54nano-smoke30.result.json": "Current state (live, 30)",
-        "option-b-azure.result.json": "Option B (live, 25)"
+        "current-state-azure.azure.result.json": "Current state (live)",
+        "option-b-azure.azure.result.json": "Option B (live)"
       },
       "takeaways": [
-        "Option B cut tokens per transcript from 30,997 to 16,983 (−45.2%) by extracting deterministically and sending the model only what each task needs.",
-        "Latency dropped: p50 38.5 s → 27.8 s (−27.7%) and p95 57.2 s → 36.7 s (−35.9%).",
-        "Estimated cost looks flat ($1,748.70 vs $1,724.86 per month) only because the pricing file bills Option B's tasks at small/medium tier rates. Every call actually hit the same nano deployment; at the nano rate Option B is about $0.0054 vs $0.0083 per transcript (≈35% lower, author's estimate).",
-        "The current-state sample completed 150 of 150 model calls successfully with no HTTP 429 responses (from its run log)."
+        "Option B cleared the full day's 7,000 transcripts in 39 minutes vs 1.50 hours for the current state (−56.2%), more than doubling throughput (78.0 → 177.9 transcripts/min).",
+        "Per-transcript latency fell: p50 18.0 s → 7.9 s (−56.2%) and p95 23.8 s → 10.1 s (−57.4%).",
+        "Tokens per transcript fell from 25,966 to 12,621 (−51.4%), and deterministic extraction removed about 4,750 model calls (35,000 → 30,250).",
+        "Neither run was throttled: 0 HTTP 429 responses in 65,253 calls, at 41–45% of the 5M TPM quota. Throughput matched workers ÷ median latency (24 ÷ 18.0 s ≈ 80/min; 24 ÷ 7.9 s ≈ 182/min), so the batch is bound by per-call latency and concurrency, not TPM — cutting per-call work is what made Option B faster.",
+        "Estimated cost: $1,302.75 → $931.12 per month (−28.5%) at the pricing file's tier rates. Every call actually hit the same nano deployment; at the nano rate Option B is about $0.0028 vs $0.0062 per transcript (≈55% lower, author's estimate).",
+        "Reliability: 3 transient HTTP 500 responses across both runs, all retried successfully; 0 errors."
       ],
       "caveats": [
-        "Recorded before run provenance was added: TPM, HTTP 429 rate, and batch time in these files are modeled (marked *). Latency, tokens, and cost are measured.",
-        "30 vs 25 transcripts — directional, not a pinned comparison.",
-        "Direct mode sends every model tier to one deployment, so tier routing is not exercised live.",
-        "No run log was kept for the Option B run, so it has no observed row."
+        "Direct mode serves every model tier from one deployment, so Option B's tier routing was not exercised live; the gains come from deterministic extraction, selective context, and fewer calls.",
+        "Live latency varies by day: the earlier August run of the same baseline (next result set) had p50 32.6 s. Compare runs from the same session.",
+        "Sandbox deployment and synthetic transcripts; not a production measurement. The endpoint hostname is redacted in the bundled files."
       ],
       "observed": {
-        "note": "Derived from the run log (not bundled because it contains endpoint hostnames). Each transcript makes 5 model calls.",
+        "note": "From the result files, which record observed HTTP 429s, retries, and wall clock. Requests include retries.",
         "rows": [
           {
-            "run": "Current state (30)",
-            "transcripts": 30,
+            "run": "Current state (7,000)",
+            "transcripts": 7000,
             "workers": 24,
-            "wall_clock_seconds": 70,
-            "requests": 150,
-            "http_200": 150,
+            "wall_clock_seconds": 5384,
+            "requests": 35002,
+            "http_200": 35000,
             "http_429": 0,
-            "other_errors": "none",
-            "observed_tokens_per_minute": 797071,
-            "transcripts_per_minute": 25.7
+            "other_errors": "2 × HTTP 500 (retried)",
+            "observed_tokens_per_minute": 2025576,
+            "transcripts_per_minute": 78.0
+          },
+          {
+            "run": "Option B (7,000)",
+            "transcripts": 7000,
+            "workers": 24,
+            "wall_clock_seconds": 2360,
+            "requests": 30251,
+            "http_200": 30250,
+            "http_429": 0,
+            "other_errors": "1 × HTTP 500 (retried)",
+            "observed_tokens_per_minute": 2245791,
+            "transcripts_per_minute": 177.9
           }
         ]
       }
     },
     {
       "id": "live-full-batch",
-      "label": "Live Azure (sandbox) — full 7,000-transcript current-state batch",
-      "description": "One day's volume processed live on a gpt-5.4-nano Global Standard deployment (5M TPM quota) in the author's sandbox with 24 concurrent workers and synthetic transcripts.",
+      "label": "Live Azure (sandbox) — earlier 7,000-transcript baseline (August, legacy format)",
+      "description": "An earlier live run of the baseline on the same gpt-5.4-nano deployment (5M TPM quota), 24 workers, synthetic transcripts — recorded before run provenance, so observed figures come from its run logs. Same conclusion as the September runs: no throttling, latency × concurrency bound.",
       "benchmarks": [
         "gpt54nano-full-7000.result.json"
       ],

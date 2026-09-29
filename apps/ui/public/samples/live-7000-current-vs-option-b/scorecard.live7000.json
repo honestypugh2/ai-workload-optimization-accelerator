@@ -1,60 +1,47 @@
 {
   "runs": [
-    "current-state (live)",
-    "option-b (live)"
+    "current-state",
+    "option-b"
   ],
   "mixed": false,
   "provenance": [
     {
       "execution_mode": "azure",
       "execution_backend": "direct",
-      "transcripts": 30,
-      "schema_version": 1,
-      "throttling_source": "modeled",
-      "timing_source": "modeled",
-      "cost_extrapolated": null,
-      "model_deployments": {},
-      "config_sha256": null,
-      "config_execution_mode": null,
-      "generated_at": null
+      "transcripts": 7000,
+      "schema_version": 2,
+      "throttling_source": "observed",
+      "timing_source": "observed",
+      "cost_extrapolated": false,
+      "model_deployments": {
+        "baseline": "gpt-nano-54"
+      },
+      "config_sha256": "3e985c2d2615bff31b8f6d1c2a50df9b84b629d568f5e9c4009d7d978d34e9a8",
+      "config_execution_mode": "azure",
+      "generated_at": "2026-09-29T00:24:39+00:00"
     },
     {
       "execution_mode": "azure",
       "execution_backend": "direct",
-      "transcripts": 25,
-      "schema_version": 1,
-      "throttling_source": "modeled",
-      "timing_source": "modeled",
-      "cost_extrapolated": null,
-      "model_deployments": {},
-      "config_sha256": null,
-      "config_execution_mode": null,
-      "generated_at": null
+      "transcripts": 7000,
+      "schema_version": 2,
+      "throttling_source": "observed",
+      "timing_source": "observed",
+      "cost_extrapolated": false,
+      "model_deployments": {
+        "medium": "gpt-nano-54",
+        "small": "gpt-nano-54"
+      },
+      "config_sha256": "a43c62e0c18191896860668870f49b8090916a6e106462df76c9a8a796147b03",
+      "config_execution_mode": "azure",
+      "generated_at": "2026-09-29T01:04:08+00:00"
     }
   ],
   "comparability_issues": [
     {
-      "label": "current-state (live)",
-      "check": "provenance",
-      "message": "legacy result with no provenance (config, deployments, git SHA); re-run to record them.",
-      "blocking": false
-    },
-    {
-      "label": "current-state (live)",
-      "check": "throttling_source",
-      "message": "live Azure run whose 429 rate, retries, and batch time are MODELED, not observed (produced before observed metrics were recorded).",
-      "blocking": false
-    },
-    {
-      "label": "option-b (live)",
-      "check": "provenance",
-      "message": "legacy result with no provenance (config, deployments, git SHA); re-run to record them.",
-      "blocking": false
-    },
-    {
-      "label": "option-b (live)",
-      "check": "throttling_source",
-      "message": "live Azure run whose 429 rate, retries, and batch time are MODELED, not observed (produced before observed metrics were recorded).",
+      "label": "option-b",
+      "check": "model_deployments",
+      "message": "every model alias hit one deployment 'gpt-nano-54'; tiered routing was not exercised live.",
       "blocking": false
     }
   ],
@@ -66,10 +53,10 @@
       "unit": "s",
       "higher_is_better": false,
       "values": [
-        1293.89,
-        767.58
+        5384.04,
+        2360.25
       ],
-      "delta": -526.3100000000001,
+      "delta": -3023.79,
       "improved": true
     },
     {
@@ -79,10 +66,10 @@
       "unit": "tx/min",
       "higher_is_better": true,
       "values": [
-        1.391,
-        1.954
+        78.008,
+        177.947
       ],
-      "delta": 0.563,
+      "delta": 99.93900000000001,
       "improved": true
     },
     {
@@ -92,11 +79,11 @@
       "unit": "tok/min",
       "higher_is_better": true,
       "values": [
-        43121.97,
-        33187.12
+        2025575.85,
+        2245790.91
       ],
-      "delta": -9934.849999999999,
-      "improved": false
+      "delta": 220215.06000000006,
+      "improved": true
     },
     {
       "metric": "p95_latency_ms",
@@ -105,10 +92,10 @@
       "unit": "ms",
       "higher_is_better": false,
       "values": [
-        57226.562,
-        36672.79
+        23764.021,
+        10111.883
       ],
-      "delta": -20553.771999999997,
+      "delta": -13652.138,
       "improved": true
     },
     {
@@ -131,11 +118,11 @@
       "unit": "",
       "higher_is_better": false,
       "values": [
-        0.0,
-        0.0
+        2.0,
+        1.0
       ],
-      "delta": 0.0,
-      "improved": false
+      "delta": -1.0,
+      "improved": true
     },
     {
       "metric": "cache_hit_rate",
@@ -157,10 +144,10 @@
       "unit": "tok",
       "higher_is_better": false,
       "values": [
-        30997.2,
-        16982.52
+        25966.12,
+        12620.55
       ],
-      "delta": -14014.68,
+      "delta": -13345.57,
       "improved": true
     },
     {
@@ -170,10 +157,10 @@
       "unit": "$",
       "higher_is_better": false,
       "values": [
-        0.008327,
-        0.008214
+        0.006204,
+        0.004434
       ],
-      "delta": -0.00011299999999999852,
+      "delta": -0.0017700000000000007,
       "improved": true
     },
     {
@@ -183,10 +170,10 @@
       "unit": "$",
       "higher_is_better": false,
       "values": [
-        58.29,
-        57.5
+        43.43,
+        31.04
       ],
-      "delta": -0.7899999999999991,
+      "delta": -12.39,
       "improved": true
     },
     {
@@ -196,10 +183,10 @@
       "unit": "$",
       "higher_is_better": false,
       "values": [
-        1748.7,
-        1724.86
+        1302.75,
+        931.12
       ],
-      "delta": -23.840000000000146,
+      "delta": -371.63,
       "improved": true
     }
   ]

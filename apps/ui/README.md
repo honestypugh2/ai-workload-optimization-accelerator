@@ -20,8 +20,8 @@ switch between the bundled result sets or choose **Upload your own files…**:
 |---|---|
 | Reference demo (synthetic, 200 transcripts) | Each optimization lever plus the stacked optimized target, member-ID quality (naive 30.8% → deterministic 93.5% recall), and the combined scorecard. Matches release `v0.1.0`. |
 | Architecture options (modeled, 7,000/day) | Current state vs Options A/B/C and a single high-quota deployment. Operations and cost only. |
-| Live Azure (sandbox) — current state vs Option B | Live gpt-5.4-nano runs (30 vs 25 transcripts): tokens −45%, p95 −36%. |
-| Live Azure (sandbox) — full 7,000-transcript batch | One day's volume live: 2.5 h, 0 HTTP 429s at ~24% of quota — latency × concurrency bound. |
+| Live Azure (sandbox) — current state vs Option B, 7,000 each | Live gpt-5.4-nano runs, back to back: batch 1.50 h → 39 min, p95 −57%, tokens −51%, 0 HTTP 429s in 65,253 calls. |
+| Live Azure (sandbox) — earlier 7,000 baseline (August, legacy) | Earlier live baseline: 2.5 h, 0 HTTP 429s at ~24% of quota. Observed figures from run logs. |
 
 Every view explains itself:
 
@@ -31,7 +31,7 @@ Every view explains itself:
   whatever is loaded, including your own uploads.
 - **How to read these results** — a glossary of every metric and run tag.
 - Live runs recorded before run provenance mark their modeled TPM and HTTP 429
-  values with `*`.
+  values with `*`. Bundled live results have the endpoint hostname redacted.
 
 To view your own runs, use the file pickers with files from
 `workload-scenarios/post-call-analytics/reports/`:
